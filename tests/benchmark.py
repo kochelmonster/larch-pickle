@@ -165,8 +165,8 @@ def main():
     if True:
         list_data = [[[d]] for d in string_data]
         print()
-        print("Test Strings")
-        print("============")
+        print("Test Lists")
+        print("==========")
         #print("len", len(list_data))
         d, l, c = measure(list_data, 1)
         show(d, l, c)

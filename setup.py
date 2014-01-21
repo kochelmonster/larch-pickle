@@ -87,32 +87,36 @@ class Pickle(LarchExtension):
 
 ext_modules = [ Pickle() ]
 
-#sys.path.append(os.path.join(os.path.abspath("larch"), "reactive"))
-#import version
-
+module_dir = os.path.dirname(os.path.abspath(__file__))
 
 setup(
     name="larch-pickle",
     #version=version.__version__,
     version="1.0.0",
     packages=find_packages(),
+    
+    # metadata for upload to PyPI
+    author='Michael Reithinger',
 
     # Project uses reStructuredText, so ensure that the docutils get
     # installed or upgraded on the target machine
     install_requires=['setuptools>=0.6c9'],
     include_package_data=True,
     namespace_packages=['larch'],
-    #test_suite="tests.test_ccore",
+    zip_safe=False,
 
-    # metadata for upload to PyPI
-    author="Michael Reithinger",
-    author_email="mreithinger@web.de",
-    description="save and fast pickle",
-    license="GNU",
+    description="A secure python pickle replacement",
     keywords="library",
-    url="http://example.com/HelloWorld/",   # project home page, if any
-
-    # could also include long_description, download_url, classifiers, etc.
+    url="https://github.com/kochelmonster/larch-pickle",
+    long_description=open(os.path.join(module_dir, "README.md"), "r").read(),
+    classifiers=[
+        "Development Status :: 5 - Production/Stable",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.3",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+             ],
 
     cmdclass={"build_ext": build_ext}, ext_modules=ext_modules,
 )
