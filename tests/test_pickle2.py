@@ -200,7 +200,6 @@ class AbstractAttackPickleTests(object):
 
     def test_attack_list(self):
         #test dos attack against list
-
         s = "".join(map(chr, [0xc9, 0xFF, 0xFF, 0xFF, 0xFF, 0]))
         self.assertRaises(EOFError, self.loads, s)
 

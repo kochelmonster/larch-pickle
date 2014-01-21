@@ -206,7 +206,7 @@ class AbstractAttackPickleTests(object):
 
     def test_attack_list(self):
         #test dos attack against list
-        s = bytes([0xc9, 0xFF, 0xFF, 0xFF, 0xFF, 1])
+        s = bytes([0xc9, 0xFF, 0xFF, 0xFF, 0xFF, 0])
         self.assertRaises(EOFError, self.loads, s)
 
         #test a save operation
@@ -709,30 +709,6 @@ class AbstractPickleTests(object):
             loaded = self.loads(dumped)
             self.assertEqual(len(loaded), len(data))
             self.assertEqual(loaded, data)
-
-    def check_negative_32b_binXXX(self, dumped):
-        if sys.maxsize > 2**32:
-            self.skipTest("test is only meaningful on 32-bit builds")
-        # XXX Pure Python pickle reads lengths as signed and passes
-        # them directly to read() (hence the EOFError)
-        with self.assertRaises((pickle.UnpicklingError, EOFError,
-                                ValueError, OverflowError)):
-            self.loads(dumped)
-
-    def test_negative_32b_binbytes(self):
-        # On 32-bit builds, a BINBYTES of 2**31 or more is refused
-        self.check_negative_32b_binXXX(b'\x80\x03B\xff\xff\xff\xffxyzq\x00.')
-
-    def test_negative_32b_binunicode(self):
-        # On 32-bit builds, a BINUNICODE of 2**31 or more is refused
-        self.check_negative_32b_binXXX(b'\x80\x03X\xff\xff\xff\xffxyzq\x00.')
-
-    def test_negative_32b_binput(self):
-        # Issue #12847
-        if sys.maxsize > 2**32:
-            self.skipTest("test is only meaningful on 32-bit builds")
-        dumped = b'\x80\x03X\x01\x00\x00\x00ar\xff\xff\xff\xff.'
-        self.assertRaises(ValueError, self.loads, dumped)
 
 
 class BigmemPickleTests(object):
