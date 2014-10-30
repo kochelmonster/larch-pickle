@@ -166,6 +166,25 @@ class Verb(object):
         self.kwargs = kwargs
 
 
+class _Neg(object):
+    __slots__ = ("value",)
+
+    def __init__(self, value):
+        self.value = value
+
+    def __getstate__(self):
+        return self.value
+
+    def __setstate__(self, state):
+        self.value = state
+
+    def __repr__(self):
+        return "-{}".format(self.value)
+
+    def __eq__(self, other):
+        return self.value == other.value
+        
+
 class AbstractDataPickleTests(object):
     def test_pickle_impossible(self):
         objects = [
@@ -192,6 +211,13 @@ class AbstractDataPickleTests(object):
         self.assertEqual(x.obj, y.obj)
         self.assertEqual(x.method, y.method)
         self.assertEqual(x.kwargs, y.kwargs)
+
+    def test_slot_with_getstate(self):
+        x = [[b'\xe5\xb5\xbbO\xf0|\xaaQpMz\xb4', None, 
+              (_Neg((4, b'\xe5\xb5\xbbO\xf0|\xaaQpMz\xb4')),)]]
+        s = self.dumps(x)
+        y = self.loads(s)
+        self.assertEqual(x, y)
 
     def test_big_data(self):
         global big_data

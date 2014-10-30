@@ -18,8 +18,8 @@ import ujson
 import marshal
 import larch.pickle as spickle
 
-
-LOOPS = 200
+VERBOSE = False
+LOOPS = 10
 
 pdumps = lambda x: pickle.dumps(x, -1)
 mdumps = lambda x: marshal.dumps(x, -1)
@@ -31,27 +31,14 @@ mdump = lambda x, f: marshal.dump(x, f, -1)
 
 serializers = (
     ('cPickle', pdumps, pickle.loads),
-    #('json', json.dumps, json.loads),
+    ('json', json.dumps, json.loads),
     #('cjson', cjson.encode, cjson.decode),
-    #('ujson', ujson.dumps, ujson.loads),
-    #('msgpack', msgpack.dumps, msgpack.loads),
-    #('marshal', mdumps, marshal.loads),
-    ('spickle', spickle.Pickler(with_refs=True).dumps, spickle.Unpickler().loads),
+    ('ujson', ujson.dumps, ujson.loads),
+    ('msgpack', msgpack.dumps, msgpack.loads),
+    ('marshal', mdumps, marshal.loads),
+    ('larch-pickle', spickle.Pickler(with_refs=True).dumps, spickle.Unpickler().loads),
 )
 
-
-d = {
-    'words': """
-        Lorem ipsum dolor sit amet, consectetur adipiscing 
-        elit. Mauris adipiscing adipiscing placerat. 
-        Vestibulum augue augue, 
-        pellentesque quis sollicitudin id, adipiscing.
-        """,
-    'list': range(1000),
-    'dict': dict((str(i),'a') for i in range(1000)),
-    'int': 100,
-    'float': 100.123456
-}
 
 def load_documents():
     with open("test.data", "rb") as f:
@@ -73,31 +60,38 @@ def measure(documents, loops=LOOPS):
         def do_load():
             loads(packed[0])
 
-        print(title)
-        print("  dump...")
-        result = timeit(do_dump, number=loops)
+        if VERBOSE:
+            print(title)
+            print("  dump...")
+            
+        try:
+            result = timeit(do_dump, number=loops)
+        except:
+            continue
         dump_table.append([title, result, len(packed[0])])
  
-        print("  load...")
+        if VERBOSE:
+            print("  load...")
         result = timeit(do_load, number=loops)
         load_table.append([title, result])
 
     return dump_table, load_table, loops
 
 
-def show(dump, load, count):
+def show(title, dump, load, count):
     dump.sort(key=lambda x: x[1])
     dump.insert(0, ['Package', 'Seconds', "Size"])
  
     load.sort(key=lambda x: x[1])
     load.insert(0, ['Package', 'Seconds'])
 
-    print("\nDump Test (%d loops)" % count)
-    print(tabulate(dump, headers="firstrow"))
+    print("### dump {} ({} loops)".format(title, count))
+    print(tabulate(dump, headers="firstrow", tablefmt="pipe"))
  
-    print("\nLoad Test (%d loops)" % count)
-    print(tabulate(load, headers="firstrow"))
+    print("### load {} ({} loops)".format(title, count))
+    print(tabulate(load, headers="firstrow", tablefmt="pipe"))
         
+
 
 class Item(object):
     def __init__(self, nr, data, time):
@@ -107,71 +101,32 @@ class Item(object):
 
 
 def main():
-    documents = load_documents()#[:1000]
-    #global d
-    #documents = [d]*100
-    """
-    print "pickle dumps"
-    sp = pdumps(documents)
-    print len(sp)
-    """
-    """
-    print("spickle dumps")
-
-    documents = documents
-    from pprint import pprint
-    #pprint(documents)
-    sp = spickle.Pickler(with_refs=True).dumps(documents)
-    d = spickle.loads(sp)
-
-    print("--------")
-    print("equal?", d == documents)
-        
-    #pprint(d)
-    #print("--------")
-    #print(repr(sp))
-    return
-    """
-    #from random import choice
-    #population = "abcdefghijklmnopqrstuvwxyz"
-    #documents = [ "".join(choice(population) for j in range(i)) for i in range(1, 1000) ]*10
-
+    documents = load_documents()
 
     if True:
-        print("Test Many Dictionaries")
-        print("======================")
-        print("len", len(documents))
-        d, l, c = measure(documents, 10)
-        show(d, l, c)
+        #print("len", len(documents))
+        d, l, c = measure(documents, LOOPS)
+        show("Dictionaries", d, l, c)
 
     if True:
-        print()
-        print("Test Objects")
-        print("============")
         objects = [Item(*args) for args in documents]
-        d, l, c = measure(objects, 10)
-        show(d, l, c)
+        d, l, c = measure(objects, LOOPS)
+        show("Objects", d, l, c)
 
     
     string_data = repr(documents).split("{")*2
     if True:
-        print()
-        print("Test Strings")
-        print("============")
         #print("len", len(string_data))
-        d, l, c = measure(string_data, 10)
-        show(d, l, c)
+        d, l, c = measure(string_data, LOOPS)
+        show("Strings", d, l, c)
     
     if True:
         list_data = [[[d]] for d in string_data]
-        print()
-        print("Test Lists")
-        print("==========")
         #print("len", len(list_data))
-        d, l, c = measure(list_data, 1)
-        show(d, l, c)
+        d, l, c = measure(list_data, LOOPS)
+        show("Lists", d, l, c)
 
 
 if __name__ == "__main__":
     main()
-    print("end main")
+

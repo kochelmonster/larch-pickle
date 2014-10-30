@@ -1163,7 +1163,7 @@ static char __pyx_k_extension_registry[] = "_extension_registry";
 static char __pyx_k_long_too_large_to_pickle[] = "long too large to pickle";
 static char __pyx_k_Difference_to_python_pickle_no[] = "\n\nDifference to python pickle:\n----------------------------\n\n- no memo attribute\n- no clear_memo()\n- no persistent_id interface\n- pickle3 can only load utf8 encoded pickle2 strings\n\n\nDifferences to msg pack protocol:\n--------------------------------\n\next type LIST:\n   the size field is interpreted as item count\n\next type VERSION:\n   the size field is interpreted as version number\n\next type OBJECT:\n   after the extension byte the object state is saved\n\n0xc1:\n   this opcode is interpreted as REF Field\n   +------+------+------+------+------+\n   | 0xcf |XXXXXX|xxxxxx|xxxxxx|xxxxxx|\n   +------+------+------+------+------+\n   XXXX 32bit big-endian ref id\n\n\nPython 2 <-> Python 3 Pickle\n----------------------------\n\nPython 2 pickles strings(bytes) to msg-pack str type and unicode to\nthe extension type UNISTR\n\nPython 3 pickles strings(unicode) to msg-pack str type and bytes to\nmsg-pack byte type\n";
 static char __pyx_k_Pickler___init___was_not_called[] = "Pickler.__init__() was not called by {}.__init__()";
-static char __pyx_k_home_michael_src_larch_git_pick[] = "/home/michael/src/larch-git/pickle/larch/pickle.pyx";
+static char __pyx_k_home_michael_src_larch_pickle_l[] = "/home/michael/src/larch-pickle/larch/pickle.pyx";
 static char __pyx_k_Unpickler___init___was_not_calle[] = "Unpickler.__init__() was not called by {}.__init__()";
 static PyObject *__pyx_n_s_AttributeError;
 static PyObject *__pyx_n_s_BuiltinMethodType;
@@ -1202,7 +1202,7 @@ static PyObject *__pyx_n_s_format;
 static PyObject *__pyx_n_s_get_output_string;
 static PyObject *__pyx_n_s_getinitargs;
 static PyObject *__pyx_n_s_getstate;
-static PyObject *__pyx_kp_s_home_michael_src_larch_git_pick;
+static PyObject *__pyx_kp_s_home_michael_src_larch_pickle_l;
 static PyObject *__pyx_n_s_import;
 static PyObject *__pyx_n_s_inner_func;
 static PyObject *__pyx_n_s_inverted_registry;
@@ -10967,7 +10967,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_get_output_string, __pyx_k_get_output_string, sizeof(__pyx_k_get_output_string), 0, 0, 1, 1},
   {&__pyx_n_s_getinitargs, __pyx_k_getinitargs, sizeof(__pyx_k_getinitargs), 0, 0, 1, 1},
   {&__pyx_n_s_getstate, __pyx_k_getstate, sizeof(__pyx_k_getstate), 0, 0, 1, 1},
-  {&__pyx_kp_s_home_michael_src_larch_git_pick, __pyx_k_home_michael_src_larch_git_pick, sizeof(__pyx_k_home_michael_src_larch_git_pick), 0, 0, 1, 0},
+  {&__pyx_kp_s_home_michael_src_larch_pickle_l, __pyx_k_home_michael_src_larch_pickle_l, sizeof(__pyx_k_home_michael_src_larch_pickle_l), 0, 0, 1, 0},
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
   {&__pyx_n_s_inner_func, __pyx_k_inner_func, sizeof(__pyx_k_inner_func), 0, 0, 1, 1},
   {&__pyx_n_s_inverted_registry, __pyx_k_inverted_registry, sizeof(__pyx_k_inverted_registry), 0, 0, 1, 1},
@@ -11048,7 +11048,7 @@ static int __Pyx_InitCachedConstants(void) {
  * register_type(inner_func, save_global)
  * del inner_func
  */
-  __pyx_codeobj__4 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_michael_src_larch_git_pick, __pyx_n_s_inner_func, 590, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 590; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_codeobj__4 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_home_michael_src_larch_pickle_l, __pyx_n_s_inner_func, 590, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 590; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "larch/pickle.pyx":839
  *         unpickle_registry[i+offset] = loader

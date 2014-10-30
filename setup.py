@@ -1,5 +1,6 @@
 import sys
 import os.path
+import os
 from setuptools import setup, find_packages
 from Cython.Distutils import build_ext, Extension
 from contextlib import contextmanager
@@ -22,7 +23,7 @@ class LarchExtension(Extension):
         self.library_dirs = list(set(self.library_dirs))
         self.define_macros = list(set(self.define_macros))
         self.extra_link_args = list(set(self.extra_link_args))
-        
+                
     @property
     def platform(self):
         platform = sys.platform
@@ -67,6 +68,10 @@ class Pickle(LarchExtension):
     name = "larch.pickle"
 
     def make(self):
+        boost_dir = os.environ.get("BOOST")
+        if boost_dir is not None:
+            self.include_dirs.append(boost_dir)
+
         with self.add(self.sources, self.dbase) as add:
             add("pickle.pyx")
 
@@ -78,7 +83,6 @@ class Pickle(LarchExtension):
             add("conversion.hpp")
 
         
-
 ext_modules = [ Pickle() ]
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
@@ -86,7 +90,7 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 setup(
     name="larch-pickle",
     #version=version.__version__,
-    version="1.0.0",
+    version="1.0.1",
     packages=find_packages(),
     
     # metadata for upload to PyPI
