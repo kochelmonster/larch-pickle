@@ -22,7 +22,7 @@ is not in the standard include path install it with:
 
 ### Speed compared to some other pickler packages
 
-### dump Dictionaries (10 loops)
+#### dump Dictionaries (10 loops)
 | Package      |   Seconds |     Size |
 |:-------------|----------:|---------:|
 | marshal      |  0.454694 | 15975952 |
@@ -31,7 +31,7 @@ is not in the standard include path install it with:
 | msgpack      |  1.95001  |  9843459 |
 | json         |  2.1489   | 14365311 |
 | cPickle      |  4.29243  | 12781866 |
-### load Dictionaries (10 loops)
+#### load Dictionaries (10 loops)
 | Package      |   Seconds |
 |:-------------|----------:|
 | msgpack      |   1.43802 |
@@ -40,19 +40,19 @@ is not in the standard include path install it with:
 | cPickle      |   2.44472 |
 | ujson        |   2.48116 |
 | json         |   5.78576 |
-### dump Objects (10 loops)
+#### dump Objects (10 loops)
 | Package      |   Seconds |     Size |
 |:-------------|----------:|---------:|
 | larch-pickle |  0.968418 | 10094415 |
 | ujson        |  2.56079  | 13331354 |
 | cPickle      |  4.8822   | 12961909 |
-### load Objects (10 loops)
+#### load Objects (10 loops)
 | Package      |   Seconds |
 |:-------------|----------:|
 | larch-pickle |   1.6902  |
 | ujson        |   2.51544 |
 | cPickle      |   2.58821 |
-### dump Strings (10 loops)
+#### dump Strings (10 loops)
 | Package      |   Seconds |     Size |
 |:-------------|----------:|---------:|
 | marshal      |  0.582926 | 32826787 |
@@ -61,7 +61,7 @@ is not in the standard include path install it with:
 | ujson        |  1.51086  | 30987525 |
 | larch-pickle |  1.70253  | 17054823 |
 | cPickle      |  4.21949  | 19871780 |
-### load Strings (10 loops)
+#### load Strings (10 loops)
 | Package      |   Seconds |
 |:-------------|----------:|
 | larch-pickle |  0.431427 |
@@ -70,7 +70,7 @@ is not in the standard include path install it with:
 | cPickle      |  1.70127  |
 | ujson        |  1.88499  |
 | json         |  3.17667  |
-### dump Lists (10 loops)
+#### dump Lists (10 loops)
 | Package      |   Seconds |     Size |
 |:-------------|----------:|---------:|
 | marshal      |  0.879272 | 42703907 |
@@ -79,7 +79,7 @@ is not in the standard include path install it with:
 | ujson        |  4.34822  | 34938373 |
 | msgpack      |  4.44871  | 31440375 |
 | cPickle      | 15.2853   | 33700258 |
-### load Lists (10 loops)
+#### load Lists (10 loops)
 | Package      |   Seconds |
 |:-------------|----------:|
 | larch-pickle |   2.12795 |
