@@ -5,12 +5,10 @@ from Cython.Distutils import build_ext, Extension
 from contextlib import contextmanager
 
 compile_debug = False
-BOOST_LIB = "boost_1_54_0"
 
 
 class LarchExtension(Extension):
     dbase = os.path.join("larch")
-    dcontrib = "3rdparty"
 
     def __init__(self):
         Extension.__init__(self, self.name, [], cython_c_in_temp=True)
@@ -32,9 +30,6 @@ class LarchExtension(Extension):
             platform = 'linux'
         return platform
     
-    def include_boost(self):
-        self.include_dirs.append(os.path.join(self.dcontrib, BOOST_LIB))
-
     def check_cplusplus(self):
         is_cpp = lambda fn: fn.endswith(".hpp") or fn.endswith(".cpp")
         if (any(is_cpp(fn) for fn in self.sources) 
@@ -72,7 +67,6 @@ class Pickle(LarchExtension):
     name = "larch.pickle"
 
     def make(self):
-        self.include_boost()
         with self.add(self.sources, self.dbase) as add:
             add("pickle.pyx")
 

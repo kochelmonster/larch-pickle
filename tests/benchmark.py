@@ -171,9 +171,6 @@ def main():
         d, l, c = measure(list_data, 1)
         show(d, l, c)
 
-    
-        
-
 
 if __name__ == "__main__":
     main()

@@ -199,32 +199,45 @@ class AbstractAttackPickleTests(object):
     # bytes, unicode and long are robust because is PyBytes_FromStringAndSize
 
     def test_attack_list(self):
-        #test dos attack against list
+        # test dos attack against list
         s = "".join(map(chr, [0xc9, 0xFF, 0xFF, 0xFF, 0xFF, 0]))
         self.assertRaises(EOFError, self.loads, s)
-
-        #test a save operation
+        
+        # test a save operation
         x = range(0x10000)
         s = self.dumps(x)
         y = self.loads(s)
         self.assertEqual(x, y)
 
     def test_attack_tuple(self):
-        #test dos attack against tuple
+        # test dos attack against tuple
         s = "".join(map(chr, [0xdd, 0xFF, 0xFF, 0xFF, 0xFF]))
         self.assertRaises(EOFError, self.loads, s)
 
-        #test a save operation
+        # test a save operation
         x = tuple(range(0x10000))
         s = self.dumps(x)
         y = self.loads(s)
         self.assertEqual(x, y)
 
     def test_attack_wrong_ext(self):
-        for i in range(12, 0x100):
+        for i in range(13, 0x100):
             s = "".join(map(chr, [0xd4, i, 0]))
-            self.assertRaises(pickle.UnpicklingError, self.loads, s)
+            self.assertRaises(
+                (pickle.UnpicklingError, TypeError), self.loads, s)
         
+
+class _Neg(object):
+    __slots__ = ("value",)
+
+    def __init__(self, value):
+        self.value = value
+
+    def __getstate__(self):
+        return self.value
+
+    def __setstate__(self, state):
+        self.value = state
 
 
 class AbstractPickleTests(object):
@@ -621,6 +634,12 @@ class AbstractPickleTests(object):
         y_keys = sorted(y.__dict__)
         for x_key, y_key in zip(x_keys, y_keys):
             self.assertIs(x_key, y_key)
+
+    def test_bug1(self):
+        x = [['\xe5\xb5\xbbO\xf0|\xaaQpMz\xb4', None, 
+              (_Neg((4, '\xe5\xb5\xbbO\xf0|\xaaQpMz\xb4')),)]]
+        s = self.dumps(x)
+        y = self.loads(s)
 
 
 # Test classes for reduce_ex

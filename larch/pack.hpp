@@ -3,9 +3,10 @@
 
 #include "pickle.hpp"
 
+
 template<typename T> void to_buffer(unsigned char* buffer, T value) {
-  *(T*)&buffer[1] = (T)value;
-  encode(*(T*)&buffer[1]);
+  encode(value);
+  *(T*)&buffer[1] = value;
 }
 
 
@@ -389,7 +390,7 @@ struct Packer {
   inline void dump(PyObject *o) {
     PyTypeObject *type = Py_TYPE(o);
     if (type == (PyTypeObject*)string_type) {
-      // A little optimation strings are saved most often
+      // A little optimation: there are many strings
       save_string_ptr(this, o);
       return;
     }
@@ -463,7 +464,6 @@ inline void save_list(Packer* p, PyObject* o) {
   Py_ssize_t size, i;
   size = PyList_GET_SIZE(o);
   p->pack_ext(LIST, size);
-  
   for(i = 0; i < size; i++) {
     p->dump(PyList_GET_ITEM(o, i));
   }

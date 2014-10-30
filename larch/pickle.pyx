@@ -101,7 +101,7 @@ cdef extern from "pickle.hpp":
 
     cdef enum EXT_TYPES:
         VERSION, LONG, REF, LIST, OBJECT, OBJECT_NEW, GLOBAL, SINGLETON, 
-        OLD_STYLE, INIT_ARGS, END_OBJECT_ITEMS, BYTES, UNISTR, 
+        OLD_STYLE, INIT_ARGS, END_OBJECT_ITEMS, BYTES, UNISTR, OBJECT_NEW_CUSTOM,
         COUNT_EXT_TYPES
 
 
@@ -471,20 +471,27 @@ cdef void save_reduced(Packer* p, object o):
         reraise()
 
 
-cdef inline int _save_new_object(Packer* p, object o) except -1:
+cdef inline int _save_new_object(EXT_TYPES type_, Packer* p, object o) except -1:
     if p.save_ref(o): return 0
     state = o.__reduce_ex__((<Pickler>p.pickler).protocol)
-    p.pack_ext(OBJECT_NEW, 1)
+    p.pack_ext(type_, 1)
     p.dump(<object>PyTuple_GET_ITEM(state, 1))
     save_object_state(p, state)
 
 
 cdef void save_new_object(Packer* p, object o):
     try:
-        _save_new_object(p, o)
+        _save_new_object(OBJECT_NEW, p, o)
     except:
         reraise()
-            
+
+
+cdef void save_new_object_custom(Packer* p, object o):
+    try:
+        _save_new_object(OBJECT_NEW_CUSTOM, p, o)
+    except:
+        reraise()
+
 
 cdef inline int _save_object(Packer* p, object o) except -1:
     cdef:
@@ -514,16 +521,22 @@ cdef inline int _save_object(Packer* p, object o) except -1:
                     next_save_func = save_reduced
     else:
         state = (<object>reduce_func)(o)
-       
+
     if isinstance(state, str):
         (<Pickler>p.pickler).pack_import2(SINGLETON, o.__module__, state)
         return 0
 
     if <str>((<object>PyTuple_GET_ITEM(state, 0)).__name__) == "__newobj__":
-        p.pack_ext(OBJECT_NEW, 1)
+        if hasattr(o, "__getstate__"):
+            p.pack_ext(OBJECT_NEW_CUSTOM, 1)
+            if next_save_func:
+                next_save_func = save_new_object_custom
+        else:
+            p.pack_ext(OBJECT_NEW, 1)
+            if next_save_func:
+                next_save_func = save_new_object
+
         p.dump(<object>PyTuple_GET_ITEM(state, 1))
-        if next_save_func:
-            next_save_func = save_new_object
     else:
         p.pack_ext(OBJECT, 1)
         p.dump(<object>PyTuple_GET_ITEM(state, 0))
@@ -703,14 +716,17 @@ cdef class Pickler:
 # Unpickler Functions
 # ----------------------------------
 
-cdef object _load_object(Unpacker *p, obj):
+cdef object _load_object(Unpacker *p, obj, uint8_t code):
     cdef:
         PyObject *set_state
+        dict obj_value
             
     state = p.load_object()
     if state is not None:
-        if PyTuple_Check(state) and PyTuple_GET_SIZE(state) == 2:
-            for k, v in (<dict>PyTuple_GET_ITEM(state, 1)).items():
+        if code != OBJECT_NEW_CUSTOM and PyTuple_Check(state)\
+           and PyTuple_GET_SIZE(state) == 2:
+            obj_value = <dict>PyTuple_GET_ITEM(state, 1)
+            for k, v in obj_value.items():
                 setattr(obj, k, v)
 
             state = <object>PyTuple_GET_ITEM(state, 0)
@@ -744,19 +760,19 @@ cdef object load_object(Unpacker *p, uint8_t code, size_t size):
     constructor_arg = p.load_object()
     obj = constructor(*constructor_arg)
     p.stamp(stamp, obj)
-    return _load_object(p, obj)
+    return _load_object(p, obj, code)
 
 
 cdef object load_object_new(Unpacker *p, uint8_t code, size_t size):
     cdef:
         uint32_t stamp = p.get_stamp()
         tuple cls_args
-
+        
     cls_args = p.load_object()
     cls = cls_args[0]
     obj = GET_NEW(cls)(<PyTypeObject*>cls, cls_args[1:], NULL)
     p.stamp(stamp, obj)
-    return _load_object(p, obj)
+    return _load_object(p, obj, code)
 
 
 cdef object load_singleton(Unpacker *p, uint8_t code, size_t size):
@@ -820,7 +836,7 @@ cdef _register_unpickle(unpack_t loader, codes, int offset=0):
     for i in codes:
         unpickle_registry[i+offset] = loader
 
-
+_register_unpickle(<unpack_t>load_wrong_code, range(0, 0x200))
 _register_unpickle(load_uint4, range(0x80))
 _register_unpickle(load_int4, range(0xe0, 0x100))
 _register_unpickle(<unpack_t>load_ref, [0xc1])
@@ -858,14 +874,13 @@ _register_unpickle(load_long, [LONG], 0x100)
 _register_unpickle(load_list, [LIST], 0x100)
 _register_unpickle(<unpack_t>load_global, [GLOBAL], 0x100)
 _register_unpickle(<unpack_t>load_object, [OBJECT], 0x100)
-_register_unpickle(<unpack_t>load_object_new, [OBJECT_NEW], 0x100)
+_register_unpickle(<unpack_t>load_object_new, [OBJECT_NEW, OBJECT_NEW_CUSTOM], 0x100)
 _register_unpickle(<unpack_t>load_singleton, [SINGLETON], 0x100)
 _register_unpickle(<unpack_t>load_oldstyle, [OLD_STYLE], 0x100)
 _register_unpickle(<unpack_t>load_initargs, [INIT_ARGS], 0x100)
 _register_unpickle(<unpack_t>load_end_item, [END_OBJECT_ITEMS], 0x100)
 _register_unpickle(load_bytes, [BYTES], 0x100)
 _register_unpickle(load_unicode, [UNISTR], 0x100)
-_register_unpickle(<unpack_t>load_wrong_code, range(COUNT_EXT_TYPES, 0x100), 0x100)
 
 
 cdef class Unpickler
@@ -878,7 +893,6 @@ cdef object call_default_find_class(Unpickler unpickler, module, name):
 
 cdef object call_sub_find_class(Unpickler unpickler, module, name):
     return unpickler._find_class(module, name)
-
 
 
 ctypedef object (*default_find_class_t)(module, name)

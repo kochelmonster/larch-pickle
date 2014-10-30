@@ -9,7 +9,6 @@
 #include <Python.h>
 #include <stdio.h>
 
-
 using namespace boost;
 using namespace boost::endian;
 using namespace boost::container;
@@ -23,7 +22,7 @@ using namespace boost::container;
 
 enum EXT_TYPES {
   VERSION=0, LONG, LIST, OBJECT, OBJECT_NEW, GLOBAL, SINGLETON, 
-  OLD_STYLE, INIT_ARGS, END_OBJECT_ITEMS, BYTES, UNISTR,
+  OLD_STYLE, INIT_ARGS, END_OBJECT_ITEMS, BYTES, UNISTR, OBJECT_NEW_CUSTOM,
   COUNT_EXT_TYPES
 };
 
