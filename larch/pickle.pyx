@@ -1014,8 +1014,9 @@ cdef class Unpickler:
             self.last_refcount = self.unpacker.reset()
 
 
-cpdef dumps(obj, protocol=3):
-    return Pickler(protocol=protocol).dump(obj).get_output_string()
+cpdef dumps(obj, protocol=3, with_refs=True):
+    return Pickler(protocol=protocol, with_refs=with_refs)\
+        .dump(obj).get_output_string()
 
 
 cpdef dump(obj, file, protocol=3):
