@@ -738,6 +738,7 @@ cdef object _load_object(Unpacker *p, obj, uint8_t code):
                 PyDict_Update(obj.__dict__, state)
             else:
                 (<object>set_state)(state)
+                Py_DECREF(<object>set_state)
 
     item = p.load_object()
     if item is not _end_item:
