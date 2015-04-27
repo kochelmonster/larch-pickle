@@ -8,7 +8,7 @@ from http.cookies import SimpleCookie
 
 from test.support import (
     TestFailed, TESTFN, run_with_locale,
-    _2G, _4G, bigmemtest,
+    _2G, _4G, bigmemtest, set_memlimit
     )
 
 from pickle import bytes_types
@@ -20,6 +20,9 @@ protocols = [3]
 
 character_size = 4 if sys.maxunicode > 0xFFFF else 2
 
+import platform
+if platform.architecture()[0] == '64bit':
+    set_memlimit("4G")
 
 class UnseekableIO(io.BytesIO):
     def peek(self, *args):
@@ -126,10 +129,6 @@ DATA4 = (b'\xd4\x00\x02\xd4\x03\xd4\x05\xab__builtin__\xa6xrange\x93\x00\x05\x01
 
 # a SimpleCookie() object pickled from 2.x with protocol 2
 DATA5 = (b'\xd4\x00\x02\xd4\x04\x91\xd4\x05\xa6Cookie\xc4\x0cSimpleCookie\x80\xc7\x00\t\xc4\x03key\xd4\x04\x91\xd4\x05\xc1\x00\x00\x00\x03\xc4\x06Morsel\x83\xc4\x0bcoded_value\xc4\x05value\xc4\x05value\xc4\x05value\xc4\x03key\xc4\x03key\xc7\x00\t\xc4\x07comment\xc4\x00\xc4\x06domain\xc4\x00\xc4\x06secure\xc4\x00\xc4\x07expires\xc4\x00\xa7max-age\xc4\x00\xc4\x07version\xc4\x00\xc4\x04path\xc4\x00\xc4\x08httponly\xc4\x00\xc7\x00\t\xc7\x00\t')
-
-# set([3]) pickled from 2.x with protocol 2
-DATA6 = (b'\xd4\x00\x02\xd4\x03\xd4\x05\xc4\x0b__builtin__\xa3set\x91\xd4\x02\x03\xc0\xc7\x00\t\xc7\x00\t')
-
 
 
 def create_data():
@@ -712,19 +711,7 @@ class AbstractPickleTests(object):
         loaded = self.loads(DATA5)
         self.assertEqual(type(loaded), SimpleCookie)
         self.assertEqual(list(loaded.keys()), ["key"])
-        self.assertEqual(loaded["key"].value, "Set-Cookie: key=value")
-
-
-    def test_pickle_to_2x(self):
-        # Pickle non-trivial data with protocol 2, expecting that it yields
-        # the same result as Python 2.x did.
-        # NOTE: this test is a bit too strong since we can produce different
-        # bytecode that 2.x will still understand.
-        dumped = self.dumps(range(5), 2)
-        self.assertEqual(dumped, DATA4)
-
-        dumped = self.dumps(set([3]), 2)
-        self.assertEqual(dumped, DATA6)
+        self.assertEqual(loaded["key"].value, "value")
 
     def test_large_pickles(self):
         # Test the correctness of internal buffering routines when handling
@@ -749,7 +736,7 @@ class BigmemPickleTests(object):
                 if proto < 2:
                     continue
                 with self.assertRaises((ValueError, OverflowError)):
-                    self.dumps(data, protocol=proto)
+                    self.dumps(data, proto=proto)
         finally:
             data = None
 
@@ -765,7 +752,7 @@ class BigmemPickleTests(object):
                 if proto < 3:
                     continue
                 try:
-                    pickled = self.dumps(data, protocol=proto)
+                    pickled = self.dumps(data, proto=proto)
                     self.assertTrue(b"abcd" in pickled[:15])
                     self.assertTrue(b"abcd" in pickled[-15:])
                 finally:
@@ -781,7 +768,7 @@ class BigmemPickleTests(object):
                 if proto < 3:
                     continue
                 with self.assertRaises((ValueError, OverflowError)):
-                    self.dumps(data, protocol=proto)
+                    self.dumps(data, proto=proto)
         finally:
             data = None
 
@@ -794,7 +781,7 @@ class BigmemPickleTests(object):
         try:
             for proto in protocols:
                 try:
-                    pickled = self.dumps(data, protocol=proto)
+                    pickled = self.dumps(data, proto=proto)
                     self.assertTrue(b"abcd" in pickled[:15])
                     self.assertTrue(b"abcd" in pickled[-15:])
                 finally:

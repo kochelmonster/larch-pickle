@@ -4,7 +4,7 @@ import io
 import sys
 import copy_reg
 import cPickle
-
+from Cookie import SimpleCookie
 
 class TestFailed(Exception):
     """Test failed."""
@@ -125,6 +125,15 @@ def create_dynamic_class(name, bases):
     result = pickling_metaclass(name, bases, dict())
     result.reduce_args = (name, bases)
     return result
+
+# set([1,2]) pickled from 3.x with protocol 2
+DATA3 = b'\xd4\x00\x02\xd4\x03\xd4\x05\xc4\x0b__builtin__\xa3set\x91\xd5\x02\x01\x02\xc0\xc7\x00\t\xc7\x00\t'
+
+# range(5) pickled from 3.x with protocol 2
+DATA4 = b'\xd4\x00\x02\xd4\x03\xd4\x05\xc4\x0b__builtin__\xc4\x06xrange\x93\x00\x05\x01\xc0\xc7\x00\t\xc7\x00\t'
+
+# a SimpleCookie() object pickled from 3.x with protocol 2
+DATA5 = b'\xd4\x00\x02\xd4\x04\x91\xd4\x05\xc4\x06Cookie\xc4\x0cSimpleCookie\xc0\xc7\x00\t\xc4\x03key\xd4\x04\x91\xd4\x05\xc1\x00\x00\x00\x03\xc4\x06Morsel\x83\xc4\x03key\xc4\x03key\xc4\x0bcoded_value\xc4\x05value\xc4\x05value\xc4\x05value\xc7\x00\t\xa7max-age\xc4\x00\xc4\x07comment\xc4\x00\xc4\x07expires\xc4\x00\xc4\x08httponly\xc4\x00\xc4\x07version\xc4\x00\xc4\x06secure\xc4\x00\xc4\x06domain\xc4\x00\xc4\x04path\xc4\x00\xc7\x00\t\xc7\x00\t'
 
 
 def create_data():
@@ -647,6 +656,19 @@ class AbstractPickleTests(object):
         y_keys = sorted(y.__dict__)
         for x_key, y_key in zip(x_keys, y_keys):
             self.assertIs(x_key, y_key)
+
+    def test_pickle_from_3x(self):
+        loaded = self.loads(DATA3)
+        self.assertEqual(loaded, set([1, 2]))
+        
+        loaded = self.loads(DATA4)
+        self.assertEqual(type(loaded), type(xrange(0)))
+        self.assertEqual(list(loaded), list(xrange(5)))
+
+        loaded = self.loads(DATA5)
+        self.assertEqual(type(loaded), SimpleCookie)
+        self.assertEqual(list(loaded.keys()), ["key"])
+        self.assertEqual(loaded["key"].value, "value")
 
 
 # Test classes for reduce_ex
