@@ -910,6 +910,7 @@ cdef object simple_find_class(module, name):
 
     return getattr(module, name)
 
+
 IF PY_MAJOR_VERSION > 2:
     cdef object mapped_find_class(module, name):
         cdef:
@@ -1033,3 +1034,5 @@ cpdef load(file):
 cpdef loads(bytes obj):
     cdef Unpickler unpickler = Unpickler(obj)
     return unpickler.load()
+
+__version__ = "1.0.4"
