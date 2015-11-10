@@ -903,7 +903,8 @@ cdef object simple_find_class(module, name):
     cdef PyObject* tmp
     tmp = PyDict_GetItem(modules, module)
     if tmp is NULL:
-        module= __import__(module)
+        __import__(module)
+        module = sys.modules[module]
     else:
         module = <object>tmp
 
