@@ -164,9 +164,17 @@ struct Unpacker {
 
   PyObject* first_load() {
     // only for cython to catch errors
-    return load();
+    try {
+      return load();
+    }
+    catch(PythonError) {
+      return NULL;
+    }
+    catch(...) {
+      PyErr_SetNone(PyExc_RuntimeError);
+      return NULL;
+    }
   }
-
 };
 
 inline PyObject* load_uint4(Unpacker *p, uint8_t code, size_t size) {

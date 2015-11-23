@@ -282,7 +282,6 @@ class AbstractPickleTests(object):
             C(),
             111111.111 ]
 
-        data = data[:1]
         for x in data:
             s = self.dumps(x)
             y = self.loads(s)

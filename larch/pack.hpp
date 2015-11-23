@@ -404,9 +404,19 @@ struct Packer {
     packer(this, o);
   }
 
-  void first_dump(PyObject* o) {
+  int first_dump(PyObject* o) {
     // only for cython to catch errors
-    dump(o);
+    try {
+      dump(o);
+    }
+    catch(PythonError) {
+      return -1;
+    }
+    catch(...) {
+      PyErr_SetNone(PyExc_RuntimeError);
+      return -1;
+    }
+    return 0;
   }
 };
 

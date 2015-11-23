@@ -136,7 +136,7 @@ cdef extern from "pack.hpp":
 
         bool save_ref(object o)
         void dump(object o)
-        void first_dump(object o) except +
+        int first_dump(object o) except -1
 
         uint32_t reset()
         void pack_version(uint8_t version) except +
@@ -185,7 +185,7 @@ cdef extern from "unpack.hpp":
         PyObject* load()
 
         object load_object"load"()
-        object first_load_object"load"() except +
+        object first_load()
 
         PyObject* get_stamped_ref(uint32_t ref)
         uint32_t get_stamp()
@@ -1004,7 +1004,7 @@ cdef class Unpickler:
     def load(self):
         self.check_init()
         try:
-            return self.unpacker.first_load_object()
+            return <object>self.unpacker.first_load()
         finally:
             self.last_refcount = self.unpacker.reset()
 
@@ -1012,7 +1012,7 @@ cdef class Unpickler:
         self.check_init()
         (<_BufferContainer>self.file).set(obj)
         try:
-            return self.unpacker.first_load_object()
+            return <object>self.unpacker.first_load()
         finally:
             self.last_refcount = self.unpacker.reset()
 
@@ -1035,4 +1035,4 @@ cpdef loads(bytes obj):
     cdef Unpickler unpickler = Unpickler(obj)
     return unpickler.load()
 
-__version__ = "1.0.4"
+__version__ = "1.0.5"
