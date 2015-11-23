@@ -850,6 +850,7 @@ class PickleTests(
     error = KeyError
 
 
+    
 class FilePicklerTests(unittest.TestCase, AbstractPickleTests):
     error = KeyError
 
@@ -874,6 +875,32 @@ class PicklerUnpicklerObjectTests(
     pickler_class = pickle.Pickler
     unpickler_class = pickle.Unpickler
 
+
+class ExceptionFileLike(object):
+    i = 0
+    
+    def read(self, size):
+        raise RuntimeError()
+
+    def write(self, buffer_):
+        if self.i == 3:
+            raise RuntimeError()
+
+        self.i += 1
+
+
+class ExceptionTests(unittest.TestCase):
+    def test_write_exception(self):
+        f = ExceptionFileLike()
+        p = pickle.Pickler(f)
+        self.assertRaises(RuntimeError, p.dump, "test")
+
+    def test_read_exception(self):
+        f = ExceptionFileLike()
+        u = pickle.Unpickler(f)
+        self.assertRaises(RuntimeError, u.load)
+
+    
 
 if __name__ == "__main__":
     unittest.main()
