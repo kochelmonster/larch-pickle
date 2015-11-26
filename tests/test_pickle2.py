@@ -4,6 +4,7 @@ import io
 import sys
 import copy_reg
 import cPickle
+import logging
 from Cookie import SimpleCookie
 
 class TestFailed(Exception):
@@ -256,7 +257,7 @@ class AbstractAttackPickleTests(object):
         self.assertEqual(x, y)
 
     def test_attack_wrong_ext(self):
-        for i in range(13, 0x100):
+        for i in range(14, 0x100):
             s = "".join(map(chr, [0xd4, i, 0]))
             self.assertRaises(
                 (pickle.UnpicklingError, TypeError), self.loads, s)
@@ -669,7 +670,21 @@ class AbstractPickleTests(object):
         self.assertEqual(list(loaded.keys()), ["key"])
         self.assertEqual(loaded["key"].value, "value")
 
+    def test_references_bug(self):
+        x = [(Ref, 1, 2),
+             (Ref, 1)]
+        
+        s = self.dumps(x)
+        y = self.loads(s)
+        self.assertEqual(x, y)
 
+
+class MetaRef(type):
+    pass
+
+Ref = MetaRef("Ref", (object,), {})
+
+        
 # Test classes for reduce_ex
 
 class REX_one(object):

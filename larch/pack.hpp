@@ -460,7 +460,6 @@ inline void save_tuple(Packer* p, PyObject* o) {
   if (p->save_ref(o)) return;
 
   Py_ssize_t size, i;
-
   size = PyTuple_GET_SIZE(o);
   p->pack_array(size);
   for(i = 0; i < size; i++) {

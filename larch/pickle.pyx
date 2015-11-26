@@ -102,12 +102,12 @@ cdef extern from "pickle.hpp":
     cdef enum EXT_TYPES:
         VERSION, LONG, REF, LIST, OBJECT, OBJECT_NEW, GLOBAL, SINGLETON, 
         OLD_STYLE, INIT_ARGS, END_OBJECT_ITEMS, BYTES, UNISTR, OBJECT_NEW_CUSTOM,
-        COUNT_EXT_TYPES
+        GLOBAL_OBJECT, COUNT_EXT_TYPES
 
 
 IF False:
     cdef show_debug(char* msg, object o, long v):
-        print msg, repr(o), v, hex(<size_t><PyObject*>o), (<PyObject*>o).ob_refcnt
+        print msg, v, repr(o), hex(<size_t><PyObject*>o), (<PyObject*>o).ob_refcnt
         
     debug = <debug_t>show_debug
 
@@ -513,8 +513,11 @@ cdef inline int _save_object(Packer* p, object o) except -1:
             try:
                 state = do_reduce((<Pickler>p.pickler).protocol)
             except TypeError:
-                #a meta class
-                save_global(p, o);
+                # a meta class
+                try:
+                    (<Pickler>p.pickler).pack_import1(GLOBAL_OBJECT, o)
+                except:
+                    reraise()
                 return 0
             else:
                 if not isinstance(state, bytes):
@@ -720,7 +723,7 @@ cdef object _load_object(Unpacker *p, obj, uint8_t code):
     cdef:
         PyObject *set_state
         dict obj_value
-            
+        
     state = p.load_object()
     if state is not None:
         if code != OBJECT_NEW_CUSTOM and PyTuple_Check(state)\
@@ -768,7 +771,7 @@ cdef object load_object_new(Unpacker *p, uint8_t code, size_t size):
     cdef:
         uint32_t stamp = p.get_stamp()
         tuple cls_args
-        
+
     cls_args = p.load_object()
     cls = cls_args[0]
     obj = GET_NEW(cls)(<PyTypeObject*>cls, cls_args[1:], NULL)
@@ -819,6 +822,13 @@ cdef object load_ref(Unpacker* p, uint8_t code, size_t size):
 
 cdef object load_global(Unpacker* p, uint8_t code, size_t size):
     return (<Unpickler>p.unpickler).unpack_import(size)
+
+
+cdef object load_global_object(Unpacker* p, uint8_t code, size_t size):
+    cdef uint32_t stamp = p.get_stamp()
+    obj = (<Unpickler>p.unpickler).unpack_import(size)
+    p.stamp(stamp, obj)
+    return obj
 
 
 cdef object load_version(Unpacker* p, uint8_t code, size_t size):
@@ -874,6 +884,7 @@ _register_unpickle(<unpack_t>load_version, [VERSION], 0x100)
 _register_unpickle(load_long, [LONG], 0x100)
 _register_unpickle(load_list, [LIST], 0x100)
 _register_unpickle(<unpack_t>load_global, [GLOBAL], 0x100)
+_register_unpickle(<unpack_t>load_global_object, [GLOBAL_OBJECT], 0x100)
 _register_unpickle(<unpack_t>load_object, [OBJECT], 0x100)
 _register_unpickle(<unpack_t>load_object_new, [OBJECT_NEW, OBJECT_NEW_CUSTOM], 0x100)
 _register_unpickle(<unpack_t>load_singleton, [SINGLETON], 0x100)
@@ -1035,4 +1046,4 @@ cpdef loads(bytes obj):
     cdef Unpickler unpickler = Unpickler(obj)
     return unpickler.load()
 
-__version__ = "1.0.5"
+__version__ = "1.0."
