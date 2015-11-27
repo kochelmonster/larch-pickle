@@ -77,8 +77,8 @@ class Pickle(LarchExtension):
                 dname for dname in os.listdir(boost_root) if dname.startswith("boost"))
             try:
                 boost_dir = max(sorted(
-                    (map(int, dname.split("_")[1:]), dname) for dname in boost_dir))
-            except ValueError:
+                    (map(int, dname.split("_")[1:]), dname) for dname in boost_dir))[1]
+            except StandardError:
                 pass
             else:
                 boost_dir = os.path.join(boost_root, boost_dir)
