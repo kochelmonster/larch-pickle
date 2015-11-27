@@ -458,7 +458,7 @@ inline PyObject* _load_bytes(Unpacker* p, size_t size, int interned) {
       PyString_InternInPlace(&result);
 #endif
 
-    if (size > 5)
+    if (size > MIN_STRING_SIZE_FOR_REF)
       p->stamp(result);
   }
   catch(...) {
@@ -482,7 +482,7 @@ inline PyObject* _load_unicode(Unpacker* p, size_t size, int interned) {
       PyUnicode_InternInPlace(&result);
 #endif
 
-    if (PyUnicode_GET_LENGTH(result) > 5)
+    if (PyUnicode_GET_LENGTH(result) > MIN_STRING_SIZE_FOR_REF)
       p->stamp(result);
   }
   catch(...) {
@@ -544,7 +544,7 @@ inline PyObject* load_bytes(Unpacker* p, uint8_t code, size_t size) {
 
   try {
     p->read(PyBytes_AS_STRING(bin), size);
-    if (size > 5) p->stamp(bin);
+    if (size > MIN_STRING_SIZE_FOR_REF) p->stamp(bin);
   } catch(...) {
     Py_XDECREF(bin);
     throw;

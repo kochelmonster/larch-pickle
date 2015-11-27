@@ -18,7 +18,7 @@ using namespace boost::container;
 #define encode native_to_big
 #define decode big_to_native
 
-#define MIN_STRING_SIZE_FOR_REF 10
+#define MIN_STRING_SIZE_FOR_REF 5
 
 enum EXT_TYPES {
   VERSION=0, LONG, LIST, OBJECT, OBJECT_NEW, GLOBAL, SINGLETON, 
@@ -51,3 +51,4 @@ inline void throw_python_error() {
 #define GET_NEW(obj) (((PyTypeObject*)(obj))->tp_new)
 
 #endif
+

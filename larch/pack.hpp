@@ -60,19 +60,30 @@ struct DumyRefHandler: public BaseRefHandler {
   virtual uint32_t reset() { return 0; }
 };
 
+
 typedef unordered_map<PyObject*, uint32_t> refmap_t;
 
 struct RefHandler: public BaseRefHandler { 
   refmap_t refs;
   uint32_t ref_counter;
+  PyObject* string_refs; // for strings the python dict is more efficent
 
-  RefHandler(): ref_counter(0) { }
+  RefHandler(): ref_counter(0) {
+    string_refs = PyDict_New();
+    if (!string_refs)
+      throw PythonError();
+  }
+  
+  ~RefHandler() {
+    Py_XDECREF(string_refs);
+  }
   
   virtual bool save_ref(Packer* p, PyObject *o);
   virtual uint32_t reset() {
     uint32_t val = ref_counter;
     ref_counter = 0;
     refs.clear();
+    PyDict_Clear(string_refs);
     return val;
   }
 };
@@ -428,17 +439,35 @@ inline bool RefHandler::save_ref(Packer* p, PyObject *o) {
     return false;
   }
 
-  uint32_t& refid = refs[o];
-  if (! refid) {
-    refid = ++ref_counter;
-    return false;
-  }
+  if (PyString_Check(o)) {
+    PyObject* c = PyDict_GetItem(string_refs, o);
+    if (!c) {
+      PyObject* i = PyInt_FromLong(++ref_counter);
+      PyDict_SetItem(string_refs, o, i);
+      Py_XDECREF(i);
+      return false;
+    }
 
-  unsigned char buf[5] = {0xc1};
-  to_buffer(buf, refid);
-  p->write(buf, sizeof(buf));
-  return true;
+    unsigned char buf[5] = {0xc1};
+    uint32_t ref = PyInt_AS_LONG(c);
+    to_buffer(buf, ref);
+    p->write(buf, sizeof(buf));
+    return true;
+  }
+  else {
+    uint32_t& refid = refs[o];
+    if (! refid) {
+      refid = ++ref_counter;
+      return false;
+    }
+
+    unsigned char buf[5] = {0xc1};
+    to_buffer(buf, refid);
+    p->write(buf, sizeof(buf));
+    return true;
+  }
 }
+
 
 inline void save_none(Packer* p, PyObject* o) {
   p->pack_nil();
@@ -498,7 +527,7 @@ inline void  save_dict(Packer* p, PyObject* o) {
 
 inline void save_bytes(Packer* p, PyObject* o) {
   Py_ssize_t size = PyBytes_GET_SIZE(o);
-  if (size > 5 && p->save_ref(o)) return;
+  if (size > MIN_STRING_SIZE_FOR_REF && p->save_ref(o)) return;
   p->pack_ext(BYTES, size);
   p->write(PyBytes_AS_STRING(o), size);
 }
@@ -510,7 +539,7 @@ inline void save_str3(Packer* p, PyObject* o) {
   Py_ssize_t size = PyUnicode_GET_LENGTH(o);
   PyObject *encoded = NULL;
 
-  if (size > 5 && p->save_ref(o)) return;
+  if (size > MIN_STRING_SIZE_FOR_REF && p->save_ref(o)) return;
 
   char* buffer = PyUnicode_AsUTF8AndSize(o, &size);
   if (!buffer) {
@@ -544,7 +573,7 @@ inline void save_str3(Packer* p, PyObject* o) {
 
 inline void save_str2(Packer* p, PyObject* o) {
   Py_ssize_t size = PyBytes_GET_SIZE(o);
-  if (size > 5 && p->save_ref(o)) return;
+  if (size > MIN_STRING_SIZE_FOR_REF && p->save_ref(o)) return;
   
   if (PyString_CHECK_INTERNED(o))
     p->pack_bin(size);
@@ -557,7 +586,7 @@ inline void save_str2(Packer* p, PyObject* o) {
 
 inline void save_unicode(Packer* p, PyObject* o) {
   Py_ssize_t size = PyUnicode_GET_LENGTH(o);
-  if (size > 5 && p->save_ref(o)) return;
+  if (size > MIN_STRING_SIZE_FOR_REF && p->save_ref(o)) return;
 
   PyObject *encoded = PyUnicode_EncodeUTF8
     (PyUnicode_AS_UNICODE(o), PyUnicode_GET_SIZE(o), "surrogatepass");

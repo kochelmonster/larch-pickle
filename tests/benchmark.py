@@ -85,12 +85,18 @@ def show(title, dump, load, count):
     load.sort(key=lambda x: x[1])
     load.insert(0, ['Package', 'Seconds'])
 
-    print("### dump {} ({} loops)".format(title, count))
-    print(tabulate(dump, headers="firstrow", tablefmt="pipe"))
- 
-    print("### load {} ({} loops)".format(title, count))
-    print(tabulate(load, headers="firstrow", tablefmt="pipe"))
-        
+    print("dump {} ({} loops)".format(title, count))
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    print()
+    print(tabulate(dump, headers="firstrow", tablefmt="rst"))
+    print()
+    print()
+    print("load {} ({} loops)".format(title, count))
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    print()
+    print(tabulate(load, headers="firstrow", tablefmt="rst"))
+    print()
+    print()
 
 
 class Item(object):
@@ -112,7 +118,6 @@ def main():
         objects = [Item(*args) for args in documents]
         d, l, c = measure(objects, LOOPS)
         show("Objects", d, l, c)
-
     
     string_data = repr(documents).split("{")*2
     if True:

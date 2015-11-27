@@ -71,7 +71,19 @@ class Pickle(LarchExtension):
         boost_dir = os.environ.get("BOOST")
         if boost_dir is not None:
             self.include_dirs.append(boost_dir)
-
+        elif self.platform == "win32":
+            boost_root = "c:\\local"
+            boost_dir = (
+                dname for dname in os.listdir(boost_root) if dname.startswith("boost"))
+            try:
+                boost_dir = max(sorted(
+                    (map(int, dname.split("_")[1:]), dname) for dname in boost_dir))
+            except ValueError:
+                pass
+            else:
+                boost_dir = os.path.join(boost_root, boost_dir)
+                self.include_dirs.append(boost_dir)
+            
         with self.add(self.sources, self.dbase) as add:
             add("pickle.pyx")
 
@@ -89,7 +101,7 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 
 setup(
     name="larch-pickle",
-    version="1.0.6",
+    version="1.1.0",
     packages=find_packages(),
     
     # metadata for upload to PyPI
@@ -105,7 +117,7 @@ setup(
     description="A secure python pickle replacement",
     keywords="library",
     url="https://github.com/kochelmonster/larch-pickle",
-    long_description=open(os.path.join(module_dir, "README.md"), "r").read(),
+    long_description=open(os.path.join(module_dir, "README.rst"), "r").read(),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
