@@ -723,7 +723,19 @@ class AbstractPickleTests(object):
             self.assertEqual(len(loaded), len(data))
             self.assertEqual(loaded, data)
 
+    def test_refcount_bug(self):
+        # was only reproducable with larch.reactive
+        try:
+            from larch.reactive import SELF
+        except ImportError:
+            return
 
+        t = (" " + SELF._docid, SELF.firstname + " ")
+        x = self.dumps(t)
+        y = self.loads(x)
+        self.assertEqual(repr(t), repr(y))
+
+            
 class BigmemPickleTests(object):
 
     # Binary protocols can serialize longs of up to 2GB-1

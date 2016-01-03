@@ -30,6 +30,7 @@ struct PointerPage {
   shared_array<PyObject*> refs;
 
   PointerPage() : refs(new PyObject*[1024]) {
+    memset(refs.get(), 0, sizeof(PyObject*)*1024);
   }
 };
 
@@ -84,6 +85,7 @@ struct UnrefMap: public vector<PointerPage> {
       if (end > ref_counter) end = ref_counter;
       for(j = i; j < end; j++, p++) {
 	Py_CLEAR(*p);
+	*p = NULL;
       }
     }
     ref_counter = 1;

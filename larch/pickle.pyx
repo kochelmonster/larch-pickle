@@ -51,7 +51,7 @@ from cpython.tuple cimport PyTuple_GET_SIZE, PyTuple_Check, PyTuple_GET_ITEM
 from cpython.dict cimport PyObject, PyDict_GetItem, PyDict_CheckExact, PyDict_Update
 from cpython.unicode cimport (
     PyUnicode_CheckExact, PyUnicode_FromObject, PyUnicode_Decode)
-from cpython.ref cimport Py_DECREF, Py_INCREF, PyTypeObject
+from cpython.ref cimport Py_DECREF, Py_INCREF, Py_CLEAR, PyTypeObject
 from cpython.exc cimport PyErr_Clear, PyErr_SetString, PyErr_Restore
 
 
@@ -107,7 +107,10 @@ cdef extern from "pickle.hpp":
 
 IF False:
     cdef show_debug(char* msg, object o, long v):
-        print msg, v, repr(o), hex(<size_t><PyObject*>o), (<PyObject*>o).ob_refcnt
+        if <PyObject*>o is NULL:
+            print msg, v, "NULL"
+        else:
+            print msg, v, repr(o), hex(<size_t><PyObject*>o), (<PyObject*>o).ob_refcnt
         
     debug = <debug_t>show_debug
 
@@ -428,27 +431,27 @@ cdef void save_oldstyle(Packer* p, object o):
 cdef inline void save_object_state(Packer* p, tuple state):
     cdef:
         size_t size
-        object tmp
+        PyObject* tmp
 
     size = PyTuple_GET_SIZE(state)
     if size > 2:
-        tmp = <object>PyTuple_GET_ITEM(state, 2)
-        p.dump(tmp)
+        tmp = PyTuple_GET_ITEM(state, 2)
+        p.dump(<object>tmp)
     else:
         p.pack_nil()
 
     if size > 3:
-        tmp = <object>PyTuple_GET_ITEM(state, 3)
-        if tmp is not None:
-            for i in tmp:
+        tmp = PyTuple_GET_ITEM(state, 3)
+        if <object>tmp is not None:
+            for i in <object>tmp:
                 p.dump(i)
 
     p.pack_ext(END_OBJECT_ITEMS, 0)
 
     if size > 4:
-        tmp = <object>PyTuple_GET_ITEM(state, 4)
-        if tmp is not None:
-            for k, v in tmp:
+        tmp = PyTuple_GET_ITEM(state, 4)
+        if <object>tmp is not None:
+            for k, v in <object>tmp:
                 p.dump(k)
                 p.dump(v)
 
@@ -498,7 +501,8 @@ cdef inline int _save_object(Packer* p, object o) except -1:
         PyObject *reduce_func
         pack_t next_save_func = NULL
 
-    if p.save_ref(o) > 0: return 0
+    if p.save_ref(o) > 0:
+        return 0
 
     reduce_func = PyDict_GetItem((<Pickler>p.pickler).dispatch_table, type(o))
     if reduce_func is NULL:
@@ -520,12 +524,12 @@ cdef inline int _save_object(Packer* p, object o) except -1:
                     reraise()
                 return 0
             else:
-                if not isinstance(state, bytes):
+                if not isinstance(state, basestring):
                     next_save_func = save_reduced
     else:
         state = (<object>reduce_func)(o)
 
-    if isinstance(state, str):
+    if isinstance(state, basestring):
         (<Pickler>p.pickler).pack_import2(SINGLETON, o.__module__, state)
         return 0
 
@@ -723,25 +727,26 @@ cdef object _load_object(Unpacker *p, obj, uint8_t code):
     cdef:
         PyObject *set_state
         dict obj_value
-        
+
     state = p.load_object()
     if state is not None:
-        if code != OBJECT_NEW_CUSTOM and PyTuple_Check(state)\
-           and PyTuple_GET_SIZE(state) == 2:
-            obj_value = <dict>PyTuple_GET_ITEM(state, 1)
-            for k, v in obj_value.items():
-                setattr(obj, k, v)
+        set_state = Object_GetAttrString(obj, "__setstate__")
+        if set_state is not NULL:
+            (<object>set_state)(state)
+            Py_CLEAR(set_state)
+        else:
+            PyErr_Clear()
 
-            state = <object>PyTuple_GET_ITEM(state, 0)
+            if code != OBJECT_NEW_CUSTOM and PyTuple_Check(state)\
+               and PyTuple_GET_SIZE(state) == 2:
+                obj_value = <dict>PyTuple_GET_ITEM(state, 1)
+                for k, v in obj_value.items():
+                    setattr(obj, k, v)
+                
+                state = <object>PyTuple_GET_ITEM(state, 0)
 
-        if state is not None:
-            set_state = Object_GetAttrString(obj, "__setstate__")
-            if set_state is NULL:
-                PyErr_Clear()
+            if state is not None:
                 PyDict_Update(obj.__dict__, state)
-            else:
-                (<object>set_state)(state)
-                Py_DECREF(<object>set_state)
 
     item = p.load_object()
     if item is not _end_item:
@@ -1046,4 +1051,4 @@ cpdef loads(bytes obj):
     cdef Unpickler unpickler = Unpickler(obj)
     return unpickler.load()
 
-__version__ = "1.1.0"
+__version__ = "1.1.1"

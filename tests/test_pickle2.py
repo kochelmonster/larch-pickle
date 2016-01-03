@@ -678,6 +678,18 @@ class AbstractPickleTests(object):
         y = self.loads(s)
         self.assertEqual(x, y)
 
+    def test_refcount_bug(self):
+        # was only reproducable with larch.reactive
+        try:
+            from larch.reactive import SELF
+        except ImportError:
+            return
+        
+        t = (" " + SELF._docid, SELF.firstname + " ")
+        x = self.dumps(t)
+        y = self.loads(x)
+        self.assertEqual(repr(t), repr(y))
+
 
 class MetaRef(type):
     pass
@@ -864,7 +876,6 @@ class PickleTests(
     module = pickle
     error = KeyError
 
-
     
 class FilePicklerTests(unittest.TestCase, AbstractPickleTests):
     error = KeyError
@@ -874,7 +885,7 @@ class FilePicklerTests(unittest.TestCase, AbstractPickleTests):
 
     def dumps(self, arg, proto=0, fast=0):
         f = io.BytesIO()
-        p = pickle.Pickler(f)
+        p = pickle.Pickler(f, protocol=proto)
         p.dump(arg)
         f.seek(0)
         return f.read()
