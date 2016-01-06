@@ -729,6 +729,18 @@ cdef object _load_object(Unpacker *p, obj, uint8_t code):
         dict obj_value
 
     state = p.load_object()
+    item = p.load_object()
+    if item is not _end_item:
+        while item is not _end_item:
+            obj.append(item)
+            item = p.load_object()
+
+    k = p.load_object()
+    while k is not _end_item:
+        v = p.load_object()
+        obj[k] = v
+        k = p.load_object()
+
     if state is not None:
         set_state = Object_GetAttrString(obj, "__setstate__")
         if set_state is not NULL:
@@ -747,19 +759,7 @@ cdef object _load_object(Unpacker *p, obj, uint8_t code):
 
             if state is not None:
                 PyDict_Update(obj.__dict__, state)
-
-    item = p.load_object()
-    if item is not _end_item:
-        while item is not _end_item:
-            obj.append(item)
-            item = p.load_object()
-
-    k = p.load_object()
-    while k is not _end_item:
-        v = p.load_object()
-        obj[k] = v
-        k = p.load_object()
-
+        
     return obj
 
 

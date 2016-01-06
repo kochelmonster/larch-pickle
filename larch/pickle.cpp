@@ -866,6 +866,26 @@ static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int 
 
 static CYTHON_INLINE void __Pyx_ExceptionSwap(PyObject **type, PyObject **value, PyObject **tb);
 
+#if CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE int __Pyx_PyList_Append(PyObject* list, PyObject* x) {
+    PyListObject* L = (PyListObject*) list;
+    Py_ssize_t len = Py_SIZE(list);
+    if (likely(L->allocated > len) & likely(len > (L->allocated >> 1))) {
+        Py_INCREF(x);
+        PyList_SET_ITEM(list, len, x);
+        Py_SIZE(list) = len+1;
+        return 0;
+    }
+    return PyList_Append(list, x);
+}
+#else
+#define __Pyx_PyList_Append(L,x) PyList_Append(L,x)
+#endif
+
+static PyObject* __Pyx_PyObject_CallMethod1(PyObject* obj, PyObject* method_name, PyObject* arg);
+
+static CYTHON_INLINE int __Pyx_PyObject_Append(PyObject* L, PyObject* x);
+
 static CYTHON_INLINE PyObject* __Pyx_PyDict_Items(PyObject* d);
 
 typedef struct {
@@ -887,26 +907,6 @@ static PyObject* __Pyx__CallUnboundCMethod0(__Pyx_CachedCFunction* cfunc, PyObje
 #else
 #define __Pyx_CallUnboundCMethod0(cfunc, self)  __Pyx__CallUnboundCMethod0(cfunc, self)
 #endif
-
-#if CYTHON_COMPILING_IN_CPYTHON
-static CYTHON_INLINE int __Pyx_PyList_Append(PyObject* list, PyObject* x) {
-    PyListObject* L = (PyListObject*) list;
-    Py_ssize_t len = Py_SIZE(list);
-    if (likely(L->allocated > len) & likely(len > (L->allocated >> 1))) {
-        Py_INCREF(x);
-        PyList_SET_ITEM(list, len, x);
-        Py_SIZE(list) = len+1;
-        return 0;
-    }
-    return PyList_Append(list, x);
-}
-#else
-#define __Pyx_PyList_Append(L,x) PyList_Append(L,x)
-#endif
-
-static PyObject* __Pyx_PyObject_CallMethod1(PyObject* obj, PyObject* method_name, PyObject* arg);
-
-static CYTHON_INLINE int __Pyx_PyObject_Append(PyObject* L, PyObject* x);
 
 #if CYTHON_COMPILING_IN_CPYTHON
 static CYTHON_INLINE PyObject* __Pyx_PyList_GetSlice(PyObject* src, Py_ssize_t start, Py_ssize_t stop);
@@ -1163,7 +1163,7 @@ static char __pyx_k_main[] = "__main__";
 static char __pyx_k_name[] = "__name__";
 static char __pyx_k_read[] = "read";
 static char __pyx_k_test[] = "__test__";
-static char __pyx_k_1_1_1[] = "1.1.1";
+static char __pyx_k_1_1_2[] = "1.1.2";
 static char __pyx_k_class[] = "__class__";
 static char __pyx_k_items[] = "items";
 static char __pyx_k_range[] = "range";
@@ -1224,7 +1224,7 @@ static char __pyx_k_Difference_to_python_pickle_no[] = "\n\nDifference to python
 static char __pyx_k_Pickler___init___was_not_called[] = "Pickler.__init__() was not called by {}.__init__()";
 static char __pyx_k_home_michael_src_larch_pickle_l[] = "/home/michael/src/larch-pickle/larch/pickle.pyx";
 static char __pyx_k_Unpickler___init___was_not_calle[] = "Unpickler.__init__() was not called by {}.__init__()";
-static PyObject *__pyx_kp_s_1_1_1;
+static PyObject *__pyx_kp_s_1_1_2;
 static PyObject *__pyx_n_s_AttributeError;
 static PyObject *__pyx_n_s_BuiltinMethodType;
 static PyObject *__pyx_kp_s_Cannot_save_r;
@@ -6932,23 +6932,23 @@ static PyObject *__pyx_f_5larch_6pickle__load_object(Unpacker *__pyx_v_p, PyObje
   PyObject *__pyx_v_set_state;
   PyObject *__pyx_v_obj_value = 0;
   PyObject *__pyx_v_state = NULL;
+  PyObject *__pyx_v_item = NULL;
   PyObject *__pyx_v_k = NULL;
   PyObject *__pyx_v_v = NULL;
-  PyObject *__pyx_v_item = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   int __pyx_t_2;
   int __pyx_t_3;
-  PyObject *__pyx_t_4 = NULL;
+  int __pyx_t_4;
   PyObject *__pyx_t_5 = NULL;
   PyObject *__pyx_t_6 = NULL;
-  PyObject *__pyx_t_7;
-  Py_ssize_t __pyx_t_8;
-  PyObject *(*__pyx_t_9)(PyObject *);
-  PyObject *__pyx_t_10 = NULL;
-  PyObject *(*__pyx_t_11)(PyObject *);
-  int __pyx_t_12;
+  PyObject *__pyx_t_7 = NULL;
+  PyObject *__pyx_t_8;
+  Py_ssize_t __pyx_t_9;
+  PyObject *(*__pyx_t_10)(PyObject *);
+  PyObject *__pyx_t_11 = NULL;
+  PyObject *(*__pyx_t_12)(PyObject *);
   int __pyx_t_13;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
@@ -6959,8 +6959,8 @@ static PyObject *__pyx_f_5larch_6pickle__load_object(Unpacker *__pyx_v_p, PyObje
  *         dict obj_value
  * 
  *     state = p.load_object()             # <<<<<<<<<<<<<<
- *     if state is not None:
- *         set_state = Object_GetAttrString(obj, "__setstate__")
+ *     item = p.load_object()
+ *     if item is not _end_item:
  */
   __pyx_t_1 = __pyx_v_p->load(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 731; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -6970,16 +6970,140 @@ static PyObject *__pyx_f_5larch_6pickle__load_object(Unpacker *__pyx_v_p, PyObje
   /* "larch/pickle.pyx":732
  * 
  *     state = p.load_object()
+ *     item = p.load_object()             # <<<<<<<<<<<<<<
+ *     if item is not _end_item:
+ *         while item is not _end_item:
+ */
+  __pyx_t_1 = __pyx_v_p->load(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 732; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_v_item = __pyx_t_1;
+  __pyx_t_1 = 0;
+
+  /* "larch/pickle.pyx":733
+ *     state = p.load_object()
+ *     item = p.load_object()
+ *     if item is not _end_item:             # <<<<<<<<<<<<<<
+ *         while item is not _end_item:
+ *             obj.append(item)
+ */
+  __pyx_t_2 = (__pyx_v_item != __pyx_v_5larch_6pickle__end_item);
+  __pyx_t_3 = (__pyx_t_2 != 0);
+  if (__pyx_t_3) {
+
+    /* "larch/pickle.pyx":734
+ *     item = p.load_object()
+ *     if item is not _end_item:
+ *         while item is not _end_item:             # <<<<<<<<<<<<<<
+ *             obj.append(item)
+ *             item = p.load_object()
+ */
+    while (1) {
+      __pyx_t_3 = (__pyx_v_item != __pyx_v_5larch_6pickle__end_item);
+      __pyx_t_2 = (__pyx_t_3 != 0);
+      if (!__pyx_t_2) break;
+
+      /* "larch/pickle.pyx":735
+ *     if item is not _end_item:
+ *         while item is not _end_item:
+ *             obj.append(item)             # <<<<<<<<<<<<<<
+ *             item = p.load_object()
+ * 
+ */
+      __pyx_t_4 = __Pyx_PyObject_Append(__pyx_v_obj, __pyx_v_item); if (unlikely(__pyx_t_4 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 735; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+
+      /* "larch/pickle.pyx":736
+ *         while item is not _end_item:
+ *             obj.append(item)
+ *             item = p.load_object()             # <<<<<<<<<<<<<<
+ * 
+ *     k = p.load_object()
+ */
+      __pyx_t_1 = __pyx_v_p->load(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 736; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __Pyx_GOTREF(__pyx_t_1);
+      __Pyx_DECREF_SET(__pyx_v_item, __pyx_t_1);
+      __pyx_t_1 = 0;
+    }
+
+    /* "larch/pickle.pyx":733
+ *     state = p.load_object()
+ *     item = p.load_object()
+ *     if item is not _end_item:             # <<<<<<<<<<<<<<
+ *         while item is not _end_item:
+ *             obj.append(item)
+ */
+  }
+
+  /* "larch/pickle.pyx":738
+ *             item = p.load_object()
+ * 
+ *     k = p.load_object()             # <<<<<<<<<<<<<<
+ *     while k is not _end_item:
+ *         v = p.load_object()
+ */
+  __pyx_t_1 = __pyx_v_p->load(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 738; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_v_k = __pyx_t_1;
+  __pyx_t_1 = 0;
+
+  /* "larch/pickle.pyx":739
+ * 
+ *     k = p.load_object()
+ *     while k is not _end_item:             # <<<<<<<<<<<<<<
+ *         v = p.load_object()
+ *         obj[k] = v
+ */
+  while (1) {
+    __pyx_t_2 = (__pyx_v_k != __pyx_v_5larch_6pickle__end_item);
+    __pyx_t_3 = (__pyx_t_2 != 0);
+    if (!__pyx_t_3) break;
+
+    /* "larch/pickle.pyx":740
+ *     k = p.load_object()
+ *     while k is not _end_item:
+ *         v = p.load_object()             # <<<<<<<<<<<<<<
+ *         obj[k] = v
+ *         k = p.load_object()
+ */
+    __pyx_t_1 = __pyx_v_p->load(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 740; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_XDECREF_SET(__pyx_v_v, __pyx_t_1);
+    __pyx_t_1 = 0;
+
+    /* "larch/pickle.pyx":741
+ *     while k is not _end_item:
+ *         v = p.load_object()
+ *         obj[k] = v             # <<<<<<<<<<<<<<
+ *         k = p.load_object()
+ * 
+ */
+    if (unlikely(PyObject_SetItem(__pyx_v_obj, __pyx_v_k, __pyx_v_v) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 741; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+
+    /* "larch/pickle.pyx":742
+ *         v = p.load_object()
+ *         obj[k] = v
+ *         k = p.load_object()             # <<<<<<<<<<<<<<
+ * 
+ *     if state is not None:
+ */
+    __pyx_t_1 = __pyx_v_p->load(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 742; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF_SET(__pyx_v_k, __pyx_t_1);
+    __pyx_t_1 = 0;
+  }
+
+  /* "larch/pickle.pyx":744
+ *         k = p.load_object()
+ * 
  *     if state is not None:             # <<<<<<<<<<<<<<
  *         set_state = Object_GetAttrString(obj, "__setstate__")
  *         if set_state is not NULL:
  */
-  __pyx_t_2 = (__pyx_v_state != Py_None);
-  __pyx_t_3 = (__pyx_t_2 != 0);
-  if (__pyx_t_3) {
+  __pyx_t_3 = (__pyx_v_state != Py_None);
+  __pyx_t_2 = (__pyx_t_3 != 0);
+  if (__pyx_t_2) {
 
-    /* "larch/pickle.pyx":733
- *     state = p.load_object()
+    /* "larch/pickle.pyx":745
+ * 
  *     if state is not None:
  *         set_state = Object_GetAttrString(obj, "__setstate__")             # <<<<<<<<<<<<<<
  *         if set_state is not NULL:
@@ -6987,17 +7111,17 @@ static PyObject *__pyx_f_5larch_6pickle__load_object(Unpacker *__pyx_v_p, PyObje
  */
     __pyx_v_set_state = PyObject_GetAttrString(__pyx_v_obj, __pyx_k_setstate);
 
-    /* "larch/pickle.pyx":734
+    /* "larch/pickle.pyx":746
  *     if state is not None:
  *         set_state = Object_GetAttrString(obj, "__setstate__")
  *         if set_state is not NULL:             # <<<<<<<<<<<<<<
  *             (<object>set_state)(state)
  *             Py_CLEAR(set_state)
  */
-    __pyx_t_3 = ((__pyx_v_set_state != NULL) != 0);
-    if (__pyx_t_3) {
+    __pyx_t_2 = ((__pyx_v_set_state != NULL) != 0);
+    if (__pyx_t_2) {
 
-      /* "larch/pickle.pyx":735
+      /* "larch/pickle.pyx":747
  *         set_state = Object_GetAttrString(obj, "__setstate__")
  *         if set_state is not NULL:
  *             (<object>set_state)(state)             # <<<<<<<<<<<<<<
@@ -7005,34 +7129,34 @@ static PyObject *__pyx_f_5larch_6pickle__load_object(Unpacker *__pyx_v_p, PyObje
  *         else:
  */
       __Pyx_INCREF(((PyObject *)__pyx_v_set_state));
-      __pyx_t_4 = ((PyObject *)__pyx_v_set_state); __pyx_t_5 = NULL;
-      if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_4))) {
-        __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_4);
-        if (likely(__pyx_t_5)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-          __Pyx_INCREF(__pyx_t_5);
+      __pyx_t_5 = ((PyObject *)__pyx_v_set_state); __pyx_t_6 = NULL;
+      if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_5))) {
+        __pyx_t_6 = PyMethod_GET_SELF(__pyx_t_5);
+        if (likely(__pyx_t_6)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
+          __Pyx_INCREF(__pyx_t_6);
           __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_4, function);
+          __Pyx_DECREF_SET(__pyx_t_5, function);
         }
       }
-      if (!__pyx_t_5) {
-        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_state); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 735; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      if (!__pyx_t_6) {
+        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_state); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 747; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_1);
       } else {
-        __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 735; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        __Pyx_GOTREF(__pyx_t_6);
-        __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_5); __pyx_t_5 = NULL;
+        __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 747; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __Pyx_GOTREF(__pyx_t_7);
+        __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_6); __pyx_t_6 = NULL;
         __Pyx_INCREF(__pyx_v_state);
         __Pyx_GIVEREF(__pyx_v_state);
-        PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_v_state);
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 735; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_v_state);
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 747; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_1);
-        __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       }
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-      /* "larch/pickle.pyx":736
+      /* "larch/pickle.pyx":748
  *         if set_state is not NULL:
  *             (<object>set_state)(state)
  *             Py_CLEAR(set_state)             # <<<<<<<<<<<<<<
@@ -7041,17 +7165,17 @@ static PyObject *__pyx_f_5larch_6pickle__load_object(Unpacker *__pyx_v_p, PyObje
  */
       Py_CLEAR(__pyx_v_set_state);
 
-      /* "larch/pickle.pyx":734
+      /* "larch/pickle.pyx":746
  *     if state is not None:
  *         set_state = Object_GetAttrString(obj, "__setstate__")
  *         if set_state is not NULL:             # <<<<<<<<<<<<<<
  *             (<object>set_state)(state)
  *             Py_CLEAR(set_state)
  */
-      goto __pyx_L4;
+      goto __pyx_L9;
     }
 
-    /* "larch/pickle.pyx":738
+    /* "larch/pickle.pyx":750
  *             Py_CLEAR(set_state)
  *         else:
  *             PyErr_Clear()             # <<<<<<<<<<<<<<
@@ -7061,60 +7185,60 @@ static PyObject *__pyx_f_5larch_6pickle__load_object(Unpacker *__pyx_v_p, PyObje
     /*else*/ {
       PyErr_Clear();
 
-      /* "larch/pickle.pyx":740
+      /* "larch/pickle.pyx":752
  *             PyErr_Clear()
  * 
  *             if code != OBJECT_NEW_CUSTOM and PyTuple_Check(state)\             # <<<<<<<<<<<<<<
  *                and PyTuple_GET_SIZE(state) == 2:
  *                 obj_value = <dict>PyTuple_GET_ITEM(state, 1)
  */
-      __pyx_t_2 = ((__pyx_v_code != OBJECT_NEW_CUSTOM) != 0);
-      if (__pyx_t_2) {
+      __pyx_t_3 = ((__pyx_v_code != OBJECT_NEW_CUSTOM) != 0);
+      if (__pyx_t_3) {
       } else {
-        __pyx_t_3 = __pyx_t_2;
-        goto __pyx_L6_bool_binop_done;
+        __pyx_t_2 = __pyx_t_3;
+        goto __pyx_L11_bool_binop_done;
       }
 
-      /* "larch/pickle.pyx":741
+      /* "larch/pickle.pyx":753
  * 
  *             if code != OBJECT_NEW_CUSTOM and PyTuple_Check(state)\
  *                and PyTuple_GET_SIZE(state) == 2:             # <<<<<<<<<<<<<<
  *                 obj_value = <dict>PyTuple_GET_ITEM(state, 1)
  *                 for k, v in obj_value.items():
  */
-      __pyx_t_2 = (PyTuple_Check(__pyx_v_state) != 0);
-      if (__pyx_t_2) {
+      __pyx_t_3 = (PyTuple_Check(__pyx_v_state) != 0);
+      if (__pyx_t_3) {
       } else {
-        __pyx_t_3 = __pyx_t_2;
-        goto __pyx_L6_bool_binop_done;
+        __pyx_t_2 = __pyx_t_3;
+        goto __pyx_L11_bool_binop_done;
       }
-      __pyx_t_2 = ((PyTuple_GET_SIZE(__pyx_v_state) == 2) != 0);
-      __pyx_t_3 = __pyx_t_2;
-      __pyx_L6_bool_binop_done:;
+      __pyx_t_3 = ((PyTuple_GET_SIZE(__pyx_v_state) == 2) != 0);
+      __pyx_t_2 = __pyx_t_3;
+      __pyx_L11_bool_binop_done:;
 
-      /* "larch/pickle.pyx":740
+      /* "larch/pickle.pyx":752
  *             PyErr_Clear()
  * 
  *             if code != OBJECT_NEW_CUSTOM and PyTuple_Check(state)\             # <<<<<<<<<<<<<<
  *                and PyTuple_GET_SIZE(state) == 2:
  *                 obj_value = <dict>PyTuple_GET_ITEM(state, 1)
  */
-      if (__pyx_t_3) {
+      if (__pyx_t_2) {
 
-        /* "larch/pickle.pyx":742
+        /* "larch/pickle.pyx":754
  *             if code != OBJECT_NEW_CUSTOM and PyTuple_Check(state)\
  *                and PyTuple_GET_SIZE(state) == 2:
  *                 obj_value = <dict>PyTuple_GET_ITEM(state, 1)             # <<<<<<<<<<<<<<
  *                 for k, v in obj_value.items():
  *                     setattr(obj, k, v)
  */
-        __pyx_t_7 = PyTuple_GET_ITEM(__pyx_v_state, 1);
-        __pyx_t_1 = ((PyObject *)__pyx_t_7);
+        __pyx_t_8 = PyTuple_GET_ITEM(__pyx_v_state, 1);
+        __pyx_t_1 = ((PyObject *)__pyx_t_8);
         __Pyx_INCREF(__pyx_t_1);
         __pyx_v_obj_value = ((PyObject*)__pyx_t_1);
         __pyx_t_1 = 0;
 
-        /* "larch/pickle.pyx":743
+        /* "larch/pickle.pyx":755
  *                and PyTuple_GET_SIZE(state) == 2:
  *                 obj_value = <dict>PyTuple_GET_ITEM(state, 1)
  *                 for k, v in obj_value.items():             # <<<<<<<<<<<<<<
@@ -7123,45 +7247,45 @@ static PyObject *__pyx_f_5larch_6pickle__load_object(Unpacker *__pyx_v_p, PyObje
  */
         if (unlikely(__pyx_v_obj_value == Py_None)) {
           PyErr_Format(PyExc_AttributeError, "'NoneType' object has no attribute '%s'", "items");
-          {__pyx_filename = __pyx_f[0]; __pyx_lineno = 743; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          {__pyx_filename = __pyx_f[0]; __pyx_lineno = 755; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         }
-        __pyx_t_1 = __Pyx_PyDict_Items(__pyx_v_obj_value); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 743; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __pyx_t_1 = __Pyx_PyDict_Items(__pyx_v_obj_value); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 755; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         __Pyx_GOTREF(__pyx_t_1);
         if (likely(PyList_CheckExact(__pyx_t_1)) || PyTuple_CheckExact(__pyx_t_1)) {
-          __pyx_t_4 = __pyx_t_1; __Pyx_INCREF(__pyx_t_4); __pyx_t_8 = 0;
-          __pyx_t_9 = NULL;
+          __pyx_t_5 = __pyx_t_1; __Pyx_INCREF(__pyx_t_5); __pyx_t_9 = 0;
+          __pyx_t_10 = NULL;
         } else {
-          __pyx_t_8 = -1; __pyx_t_4 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 743; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-          __Pyx_GOTREF(__pyx_t_4);
-          __pyx_t_9 = Py_TYPE(__pyx_t_4)->tp_iternext; if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 743; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_9 = -1; __pyx_t_5 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 755; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __Pyx_GOTREF(__pyx_t_5);
+          __pyx_t_10 = Py_TYPE(__pyx_t_5)->tp_iternext; if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 755; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
         }
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
         for (;;) {
-          if (likely(!__pyx_t_9)) {
-            if (likely(PyList_CheckExact(__pyx_t_4))) {
-              if (__pyx_t_8 >= PyList_GET_SIZE(__pyx_t_4)) break;
+          if (likely(!__pyx_t_10)) {
+            if (likely(PyList_CheckExact(__pyx_t_5))) {
+              if (__pyx_t_9 >= PyList_GET_SIZE(__pyx_t_5)) break;
               #if CYTHON_COMPILING_IN_CPYTHON
-              __pyx_t_1 = PyList_GET_ITEM(__pyx_t_4, __pyx_t_8); __Pyx_INCREF(__pyx_t_1); __pyx_t_8++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 743; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+              __pyx_t_1 = PyList_GET_ITEM(__pyx_t_5, __pyx_t_9); __Pyx_INCREF(__pyx_t_1); __pyx_t_9++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 755; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
               #else
-              __pyx_t_1 = PySequence_ITEM(__pyx_t_4, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 743; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+              __pyx_t_1 = PySequence_ITEM(__pyx_t_5, __pyx_t_9); __pyx_t_9++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 755; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
               __Pyx_GOTREF(__pyx_t_1);
               #endif
             } else {
-              if (__pyx_t_8 >= PyTuple_GET_SIZE(__pyx_t_4)) break;
+              if (__pyx_t_9 >= PyTuple_GET_SIZE(__pyx_t_5)) break;
               #if CYTHON_COMPILING_IN_CPYTHON
-              __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_4, __pyx_t_8); __Pyx_INCREF(__pyx_t_1); __pyx_t_8++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 743; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+              __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_5, __pyx_t_9); __Pyx_INCREF(__pyx_t_1); __pyx_t_9++; if (unlikely(0 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 755; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
               #else
-              __pyx_t_1 = PySequence_ITEM(__pyx_t_4, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 743; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+              __pyx_t_1 = PySequence_ITEM(__pyx_t_5, __pyx_t_9); __pyx_t_9++; if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 755; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
               __Pyx_GOTREF(__pyx_t_1);
               #endif
             }
           } else {
-            __pyx_t_1 = __pyx_t_9(__pyx_t_4);
+            __pyx_t_1 = __pyx_t_10(__pyx_t_5);
             if (unlikely(!__pyx_t_1)) {
               PyObject* exc_type = PyErr_Occurred();
               if (exc_type) {
                 if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-                else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 743; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+                else {__pyx_filename = __pyx_f[0]; __pyx_lineno = 755; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
               }
               break;
             }
@@ -7177,61 +7301,61 @@ static PyObject *__pyx_f_5larch_6pickle__load_object(Unpacker *__pyx_v_p, PyObje
             if (unlikely(size != 2)) {
               if (size > 2) __Pyx_RaiseTooManyValuesError(2);
               else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-              {__pyx_filename = __pyx_f[0]; __pyx_lineno = 743; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+              {__pyx_filename = __pyx_f[0]; __pyx_lineno = 755; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             }
             #if CYTHON_COMPILING_IN_CPYTHON
             if (likely(PyTuple_CheckExact(sequence))) {
-              __pyx_t_6 = PyTuple_GET_ITEM(sequence, 0); 
-              __pyx_t_5 = PyTuple_GET_ITEM(sequence, 1); 
+              __pyx_t_7 = PyTuple_GET_ITEM(sequence, 0); 
+              __pyx_t_6 = PyTuple_GET_ITEM(sequence, 1); 
             } else {
-              __pyx_t_6 = PyList_GET_ITEM(sequence, 0); 
-              __pyx_t_5 = PyList_GET_ITEM(sequence, 1); 
+              __pyx_t_7 = PyList_GET_ITEM(sequence, 0); 
+              __pyx_t_6 = PyList_GET_ITEM(sequence, 1); 
             }
+            __Pyx_INCREF(__pyx_t_7);
             __Pyx_INCREF(__pyx_t_6);
-            __Pyx_INCREF(__pyx_t_5);
             #else
-            __pyx_t_6 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 743; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __pyx_t_7 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_7)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 755; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __Pyx_GOTREF(__pyx_t_7);
+            __pyx_t_6 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 755; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
             __Pyx_GOTREF(__pyx_t_6);
-            __pyx_t_5 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 743; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-            __Pyx_GOTREF(__pyx_t_5);
             #endif
             __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
           } else {
             Py_ssize_t index = -1;
-            __pyx_t_10 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_10)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 743; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-            __Pyx_GOTREF(__pyx_t_10);
+            __pyx_t_11 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_11)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 755; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __Pyx_GOTREF(__pyx_t_11);
             __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-            __pyx_t_11 = Py_TYPE(__pyx_t_10)->tp_iternext;
-            index = 0; __pyx_t_6 = __pyx_t_11(__pyx_t_10); if (unlikely(!__pyx_t_6)) goto __pyx_L11_unpacking_failed;
+            __pyx_t_12 = Py_TYPE(__pyx_t_11)->tp_iternext;
+            index = 0; __pyx_t_7 = __pyx_t_12(__pyx_t_11); if (unlikely(!__pyx_t_7)) goto __pyx_L16_unpacking_failed;
+            __Pyx_GOTREF(__pyx_t_7);
+            index = 1; __pyx_t_6 = __pyx_t_12(__pyx_t_11); if (unlikely(!__pyx_t_6)) goto __pyx_L16_unpacking_failed;
             __Pyx_GOTREF(__pyx_t_6);
-            index = 1; __pyx_t_5 = __pyx_t_11(__pyx_t_10); if (unlikely(!__pyx_t_5)) goto __pyx_L11_unpacking_failed;
-            __Pyx_GOTREF(__pyx_t_5);
-            if (__Pyx_IternextUnpackEndCheck(__pyx_t_11(__pyx_t_10), 2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 743; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-            __pyx_t_11 = NULL;
-            __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-            goto __pyx_L12_unpacking_done;
-            __pyx_L11_unpacking_failed:;
-            __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-            __pyx_t_11 = NULL;
+            if (__Pyx_IternextUnpackEndCheck(__pyx_t_12(__pyx_t_11), 2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 755; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __pyx_t_12 = NULL;
+            __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+            goto __pyx_L17_unpacking_done;
+            __pyx_L16_unpacking_failed:;
+            __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+            __pyx_t_12 = NULL;
             if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-            {__pyx_filename = __pyx_f[0]; __pyx_lineno = 743; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-            __pyx_L12_unpacking_done:;
+            {__pyx_filename = __pyx_f[0]; __pyx_lineno = 755; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+            __pyx_L17_unpacking_done:;
           }
-          __Pyx_XDECREF_SET(__pyx_v_k, __pyx_t_6);
+          __Pyx_DECREF_SET(__pyx_v_k, __pyx_t_7);
+          __pyx_t_7 = 0;
+          __Pyx_XDECREF_SET(__pyx_v_v, __pyx_t_6);
           __pyx_t_6 = 0;
-          __Pyx_XDECREF_SET(__pyx_v_v, __pyx_t_5);
-          __pyx_t_5 = 0;
 
-          /* "larch/pickle.pyx":744
+          /* "larch/pickle.pyx":756
  *                 obj_value = <dict>PyTuple_GET_ITEM(state, 1)
  *                 for k, v in obj_value.items():
  *                     setattr(obj, k, v)             # <<<<<<<<<<<<<<
  * 
  *                 state = <object>PyTuple_GET_ITEM(state, 0)
  */
-          __pyx_t_12 = PyObject_SetAttr(__pyx_v_obj, __pyx_v_k, __pyx_v_v); if (unlikely(__pyx_t_12 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 744; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+          __pyx_t_4 = PyObject_SetAttr(__pyx_v_obj, __pyx_v_k, __pyx_v_v); if (unlikely(__pyx_t_4 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 756; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
-          /* "larch/pickle.pyx":743
+          /* "larch/pickle.pyx":755
  *                and PyTuple_GET_SIZE(state) == 2:
  *                 obj_value = <dict>PyTuple_GET_ITEM(state, 1)
  *                 for k, v in obj_value.items():             # <<<<<<<<<<<<<<
@@ -7239,22 +7363,22 @@ static PyObject *__pyx_f_5larch_6pickle__load_object(Unpacker *__pyx_v_p, PyObje
  * 
  */
         }
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-        /* "larch/pickle.pyx":746
+        /* "larch/pickle.pyx":758
  *                     setattr(obj, k, v)
  * 
  *                 state = <object>PyTuple_GET_ITEM(state, 0)             # <<<<<<<<<<<<<<
  * 
  *             if state is not None:
  */
-        __pyx_t_7 = PyTuple_GET_ITEM(__pyx_v_state, 0);
-        __pyx_t_4 = ((PyObject *)__pyx_t_7);
-        __Pyx_INCREF(__pyx_t_4);
-        __Pyx_DECREF_SET(__pyx_v_state, __pyx_t_4);
-        __pyx_t_4 = 0;
+        __pyx_t_8 = PyTuple_GET_ITEM(__pyx_v_state, 0);
+        __pyx_t_5 = ((PyObject *)__pyx_t_8);
+        __Pyx_INCREF(__pyx_t_5);
+        __Pyx_DECREF_SET(__pyx_v_state, __pyx_t_5);
+        __pyx_t_5 = 0;
 
-        /* "larch/pickle.pyx":740
+        /* "larch/pickle.pyx":752
  *             PyErr_Clear()
  * 
  *             if code != OBJECT_NEW_CUSTOM and PyTuple_Check(state)\             # <<<<<<<<<<<<<<
@@ -7263,30 +7387,30 @@ static PyObject *__pyx_f_5larch_6pickle__load_object(Unpacker *__pyx_v_p, PyObje
  */
       }
 
-      /* "larch/pickle.pyx":748
+      /* "larch/pickle.pyx":760
  *                 state = <object>PyTuple_GET_ITEM(state, 0)
  * 
  *             if state is not None:             # <<<<<<<<<<<<<<
  *                 PyDict_Update(obj.__dict__, state)
  * 
  */
-      __pyx_t_3 = (__pyx_v_state != Py_None);
-      __pyx_t_2 = (__pyx_t_3 != 0);
-      if (__pyx_t_2) {
+      __pyx_t_2 = (__pyx_v_state != Py_None);
+      __pyx_t_3 = (__pyx_t_2 != 0);
+      if (__pyx_t_3) {
 
-        /* "larch/pickle.pyx":749
+        /* "larch/pickle.pyx":761
  * 
  *             if state is not None:
  *                 PyDict_Update(obj.__dict__, state)             # <<<<<<<<<<<<<<
  * 
- *     item = p.load_object()
+ *     return obj
  */
-        __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_obj, __pyx_n_s_dict); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 749; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        __Pyx_GOTREF(__pyx_t_4);
-        __pyx_t_13 = PyDict_Update(__pyx_t_4, __pyx_v_state); if (unlikely(__pyx_t_13 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 749; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_obj, __pyx_n_s_dict); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 761; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __Pyx_GOTREF(__pyx_t_5);
+        __pyx_t_13 = PyDict_Update(__pyx_t_5, __pyx_v_state); if (unlikely(__pyx_t_13 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 761; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-        /* "larch/pickle.pyx":748
+        /* "larch/pickle.pyx":760
  *                 state = <object>PyTuple_GET_ITEM(state, 0)
  * 
  *             if state is not None:             # <<<<<<<<<<<<<<
@@ -7295,143 +7419,19 @@ static PyObject *__pyx_f_5larch_6pickle__load_object(Unpacker *__pyx_v_p, PyObje
  */
       }
     }
-    __pyx_L4:;
+    __pyx_L9:;
 
-    /* "larch/pickle.pyx":732
+    /* "larch/pickle.pyx":744
+ *         k = p.load_object()
  * 
- *     state = p.load_object()
  *     if state is not None:             # <<<<<<<<<<<<<<
  *         set_state = Object_GetAttrString(obj, "__setstate__")
  *         if set_state is not NULL:
  */
   }
 
-  /* "larch/pickle.pyx":751
- *                 PyDict_Update(obj.__dict__, state)
- * 
- *     item = p.load_object()             # <<<<<<<<<<<<<<
- *     if item is not _end_item:
- *         while item is not _end_item:
- */
-  __pyx_t_4 = __pyx_v_p->load(); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 751; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_v_item = __pyx_t_4;
-  __pyx_t_4 = 0;
-
-  /* "larch/pickle.pyx":752
- * 
- *     item = p.load_object()
- *     if item is not _end_item:             # <<<<<<<<<<<<<<
- *         while item is not _end_item:
- *             obj.append(item)
- */
-  __pyx_t_2 = (__pyx_v_item != __pyx_v_5larch_6pickle__end_item);
-  __pyx_t_3 = (__pyx_t_2 != 0);
-  if (__pyx_t_3) {
-
-    /* "larch/pickle.pyx":753
- *     item = p.load_object()
- *     if item is not _end_item:
- *         while item is not _end_item:             # <<<<<<<<<<<<<<
- *             obj.append(item)
- *             item = p.load_object()
- */
-    while (1) {
-      __pyx_t_3 = (__pyx_v_item != __pyx_v_5larch_6pickle__end_item);
-      __pyx_t_2 = (__pyx_t_3 != 0);
-      if (!__pyx_t_2) break;
-
-      /* "larch/pickle.pyx":754
- *     if item is not _end_item:
- *         while item is not _end_item:
- *             obj.append(item)             # <<<<<<<<<<<<<<
- *             item = p.load_object()
- * 
- */
-      __pyx_t_12 = __Pyx_PyObject_Append(__pyx_v_obj, __pyx_v_item); if (unlikely(__pyx_t_12 == -1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 754; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-
-      /* "larch/pickle.pyx":755
- *         while item is not _end_item:
- *             obj.append(item)
- *             item = p.load_object()             # <<<<<<<<<<<<<<
- * 
- *     k = p.load_object()
- */
-      __pyx_t_4 = __pyx_v_p->load(); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 755; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_DECREF_SET(__pyx_v_item, __pyx_t_4);
-      __pyx_t_4 = 0;
-    }
-
-    /* "larch/pickle.pyx":752
- * 
- *     item = p.load_object()
- *     if item is not _end_item:             # <<<<<<<<<<<<<<
- *         while item is not _end_item:
- *             obj.append(item)
- */
-  }
-
-  /* "larch/pickle.pyx":757
- *             item = p.load_object()
- * 
- *     k = p.load_object()             # <<<<<<<<<<<<<<
- *     while k is not _end_item:
- *         v = p.load_object()
- */
-  __pyx_t_4 = __pyx_v_p->load(); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 757; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_XDECREF_SET(__pyx_v_k, __pyx_t_4);
-  __pyx_t_4 = 0;
-
-  /* "larch/pickle.pyx":758
- * 
- *     k = p.load_object()
- *     while k is not _end_item:             # <<<<<<<<<<<<<<
- *         v = p.load_object()
- *         obj[k] = v
- */
-  while (1) {
-    __pyx_t_2 = (__pyx_v_k != __pyx_v_5larch_6pickle__end_item);
-    __pyx_t_3 = (__pyx_t_2 != 0);
-    if (!__pyx_t_3) break;
-
-    /* "larch/pickle.pyx":759
- *     k = p.load_object()
- *     while k is not _end_item:
- *         v = p.load_object()             # <<<<<<<<<<<<<<
- *         obj[k] = v
- *         k = p.load_object()
- */
-    __pyx_t_4 = __pyx_v_p->load(); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 759; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_XDECREF_SET(__pyx_v_v, __pyx_t_4);
-    __pyx_t_4 = 0;
-
-    /* "larch/pickle.pyx":760
- *     while k is not _end_item:
- *         v = p.load_object()
- *         obj[k] = v             # <<<<<<<<<<<<<<
- *         k = p.load_object()
- * 
- */
-    if (unlikely(PyObject_SetItem(__pyx_v_obj, __pyx_v_k, __pyx_v_v) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 760; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-
-    /* "larch/pickle.pyx":761
- *         v = p.load_object()
- *         obj[k] = v
- *         k = p.load_object()             # <<<<<<<<<<<<<<
- * 
- *     return obj
- */
-    __pyx_t_4 = __pyx_v_p->load(); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 761; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_DECREF_SET(__pyx_v_k, __pyx_t_4);
-    __pyx_t_4 = 0;
-  }
-
   /* "larch/pickle.pyx":763
- *         k = p.load_object()
+ *                 PyDict_Update(obj.__dict__, state)
  * 
  *     return obj             # <<<<<<<<<<<<<<
  * 
@@ -7453,18 +7453,18 @@ static PyObject *__pyx_f_5larch_6pickle__load_object(Unpacker *__pyx_v_p, PyObje
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_XDECREF(__pyx_t_10);
+  __Pyx_XDECREF(__pyx_t_7);
+  __Pyx_XDECREF(__pyx_t_11);
   __Pyx_AddTraceback("larch.pickle._load_object", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_obj_value);
   __Pyx_XDECREF(__pyx_v_state);
+  __Pyx_XDECREF(__pyx_v_item);
   __Pyx_XDECREF(__pyx_v_k);
   __Pyx_XDECREF(__pyx_v_v);
-  __Pyx_XDECREF(__pyx_v_item);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
@@ -10987,7 +10987,7 @@ static PyObject *__pyx_f_5larch_6pickle_loads(PyObject *__pyx_v_obj, CYTHON_UNUS
  *     cdef Unpickler unpickler = Unpickler(obj)
  *     return unpickler.load()             # <<<<<<<<<<<<<<
  * 
- * __version__ = "1.1.1"
+ * __version__ = "1.1.2"
  */
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_unpickler), __pyx_n_s_load); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1057; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -11811,7 +11811,7 @@ static struct PyModuleDef __pyx_moduledef = {
 #endif
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
-  {&__pyx_kp_s_1_1_1, __pyx_k_1_1_1, sizeof(__pyx_k_1_1_1), 0, 0, 1, 0},
+  {&__pyx_kp_s_1_1_2, __pyx_k_1_1_2, sizeof(__pyx_k_1_1_2), 0, 0, 1, 0},
   {&__pyx_n_s_AttributeError, __pyx_k_AttributeError, sizeof(__pyx_k_AttributeError), 0, 0, 1, 1},
   {&__pyx_n_s_BuiltinMethodType, __pyx_k_BuiltinMethodType, sizeof(__pyx_k_BuiltinMethodType), 0, 0, 1, 1},
   {&__pyx_kp_s_Cannot_save_r, __pyx_k_Cannot_save_r, sizeof(__pyx_k_Cannot_save_r), 0, 0, 1, 0},
@@ -13493,9 +13493,9 @@ PyMODINIT_FUNC PyInit_pickle(void)
   /* "larch/pickle.pyx":1059
  *     return unpickler.load()
  * 
- * __version__ = "1.1.1"             # <<<<<<<<<<<<<<
+ * __version__ = "1.1.2"             # <<<<<<<<<<<<<<
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_s_1_1_1) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1059; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_s_1_1_2) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1059; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
 
   /* "larch/pickle.pyx":1
  * #cython: boundscheck=False, always_allow_keywords=False, profile=False             # <<<<<<<<<<<<<<
@@ -14362,6 +14362,49 @@ static CYTHON_INLINE void __Pyx_ExceptionSwap(PyObject **type, PyObject **value,
     *tb = tmp_tb;
 }
 
+static PyObject* __Pyx_PyObject_CallMethod1(PyObject* obj, PyObject* method_name, PyObject* arg) {
+    PyObject *method, *result = NULL;
+    method = __Pyx_PyObject_GetAttrStr(obj, method_name);
+    if (unlikely(!method)) goto bad;
+#if CYTHON_COMPILING_IN_CPYTHON
+    if (likely(PyMethod_Check(method))) {
+        PyObject *self = PyMethod_GET_SELF(method);
+        if (likely(self)) {
+            PyObject *args;
+            PyObject *function = PyMethod_GET_FUNCTION(method);
+            args = PyTuple_New(2);
+            if (unlikely(!args)) goto bad;
+            Py_INCREF(self);
+            PyTuple_SET_ITEM(args, 0, self);
+            Py_INCREF(arg);
+            PyTuple_SET_ITEM(args, 1, arg);
+            Py_INCREF(function);
+            Py_DECREF(method); method = NULL;
+            result = __Pyx_PyObject_Call(function, args, NULL);
+            Py_DECREF(args);
+            Py_DECREF(function);
+            return result;
+        }
+    }
+#endif
+    result = __Pyx_PyObject_CallOneArg(method, arg);
+bad:
+    Py_XDECREF(method);
+    return result;
+}
+
+static CYTHON_INLINE int __Pyx_PyObject_Append(PyObject* L, PyObject* x) {
+    if (likely(PyList_CheckExact(L))) {
+        if (unlikely(__Pyx_PyList_Append(L, x) < 0)) return -1;
+    } else {
+        PyObject* retval = __Pyx_PyObject_CallMethod1(L, __pyx_n_s_append, x);
+        if (unlikely(!retval))
+            return -1;
+        Py_DECREF(retval);
+    }
+    return 0;
+}
+
 static int __Pyx_TryUnpackUnboundCMethod(__Pyx_CachedCFunction* target) {
     PyObject *method;
     method = __Pyx_PyObject_GetAttrStr(target->type, *target->method_name);
@@ -14404,49 +14447,6 @@ static CYTHON_INLINE PyObject* __Pyx_PyDict_Items(PyObject* d) {
         return __Pyx_CallUnboundCMethod0(&__pyx_umethod_PyDict_Type_items, d);
     else
         return PyDict_Items(d);
-}
-
-static PyObject* __Pyx_PyObject_CallMethod1(PyObject* obj, PyObject* method_name, PyObject* arg) {
-    PyObject *method, *result = NULL;
-    method = __Pyx_PyObject_GetAttrStr(obj, method_name);
-    if (unlikely(!method)) goto bad;
-#if CYTHON_COMPILING_IN_CPYTHON
-    if (likely(PyMethod_Check(method))) {
-        PyObject *self = PyMethod_GET_SELF(method);
-        if (likely(self)) {
-            PyObject *args;
-            PyObject *function = PyMethod_GET_FUNCTION(method);
-            args = PyTuple_New(2);
-            if (unlikely(!args)) goto bad;
-            Py_INCREF(self);
-            PyTuple_SET_ITEM(args, 0, self);
-            Py_INCREF(arg);
-            PyTuple_SET_ITEM(args, 1, arg);
-            Py_INCREF(function);
-            Py_DECREF(method); method = NULL;
-            result = __Pyx_PyObject_Call(function, args, NULL);
-            Py_DECREF(args);
-            Py_DECREF(function);
-            return result;
-        }
-    }
-#endif
-    result = __Pyx_PyObject_CallOneArg(method, arg);
-bad:
-    Py_XDECREF(method);
-    return result;
-}
-
-static CYTHON_INLINE int __Pyx_PyObject_Append(PyObject* L, PyObject* x) {
-    if (likely(PyList_CheckExact(L))) {
-        if (unlikely(__Pyx_PyList_Append(L, x) < 0)) return -1;
-    } else {
-        PyObject* retval = __Pyx_PyObject_CallMethod1(L, __pyx_n_s_append, x);
-        if (unlikely(!retval))
-            return -1;
-        Py_DECREF(retval);
-    }
-    return 0;
 }
 
 #if CYTHON_COMPILING_IN_CPYTHON
