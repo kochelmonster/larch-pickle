@@ -1056,4 +1056,4 @@ cpdef loads(bytes obj):
     cdef Unpickler unpickler = Unpickler(obj)
     return unpickler.load()
 
-__version__ = "1.1.1"
+__version__ = "1.1.2"
