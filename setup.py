@@ -1,7 +1,7 @@
 import sys
 import os.path
 import os
-from setuptools import setup, find_packages
+from distutils.core import setup
 from Cython.Distutils import build_ext, Extension
 from contextlib import contextmanager
 
@@ -13,7 +13,8 @@ class LarchExtension(Extension):
 
     def __init__(self):
         Extension.__init__(self, self.name, [], cython_c_in_temp=True)
-        self.cython_compile_time_env = { "PY_MAJOR_VERSION" : sys.version_info[0] }
+        self.cython_compile_time_env = {
+            "PY_MAJOR_VERSION": sys.version_info[0]}
         self.make()
         self.check_cplusplus()
         self.add_optimize_flag()
@@ -23,18 +24,18 @@ class LarchExtension(Extension):
         self.library_dirs = list(set(self.library_dirs))
         self.define_macros = list(set(self.define_macros))
         self.extra_link_args = list(set(self.extra_link_args))
-                
+
     @property
     def platform(self):
         platform = sys.platform
         if platform.startswith('linux'):
             platform = 'linux'
         return platform
-    
+
     def check_cplusplus(self):
         is_cpp = lambda fn: fn.endswith(".hpp") or fn.endswith(".cpp")
-        if (any(is_cpp(fn) for fn in self.sources) 
-            or any(is_cpp(fn) for fn in self.depends)):
+        if (any(is_cpp(fn) for fn in self.sources) or
+                any(is_cpp(fn) for fn in self.depends)):
             self.language = "c++"
             if self.platform == "win32":
                 self.extra_compile_args.append("/EHsc")
@@ -42,25 +43,26 @@ class LarchExtension(Extension):
     @contextmanager
     def add(self, add_list, *path):
         directory = os.path.join(*path)
+
         def add(fname):
             add_list.append(os.path.join(directory, fname))
         yield add
 
     def add_optimize_flag(self):
-        #optimation
+        # optimation
         if compile_debug:
-            CFLAGS = { "win32" : [ "/Zi" ] }
-            LFLAGS = { "win32" : [ "/DEBUG" ] }
+            CFLAGS = {"win32": ["/Zi"]}
+            LFLAGS = {"win32": ["/DEBUG"]}
             self.extra_compile_args.extend(CFLAGS.get(self.platform, ["-g"]))
             self.extra_link_args.extend(LFLAGS.get(self.platform, []))
-            self.define_macros.extend([ ("DEBUG", None) ])
+            self.define_macros.extend([("DEBUG", None)])
 
-            #profile
+            # profile
             self.libraries.extend(["profiler"])
-            #self.define_macros.extend([ ("CYTHON_TRACE", 1) ])
+            # self.define_macros.extend([ ("CYTHON_TRACE", 1) ])
 
         else:
-            FLAGS = { "win32" : [ "/O2", "/Oi" ] }
+            FLAGS = {"win32": ["/O2", "/Oi"]}
             self.extra_compile_args.extend(FLAGS.get(self.platform, ["-O3"]))
 
 
@@ -74,16 +76,18 @@ class Pickle(LarchExtension):
         elif self.platform == "win32":
             boost_root = "c:\\local"
             boost_dir = (
-                dname for dname in os.listdir(boost_root) if dname.startswith("boost"))
+                dname for dname in os.listdir(boost_root)
+                if dname.startswith("boost"))
             try:
                 boost_dir = max(sorted(
-                    (map(int, dname.split("_")[1:]), dname) for dname in boost_dir))[1]
+                    (map(int, dname.split("_")[1:]), dname)
+                    for dname in boost_dir))[1]
             except StandardError:
                 pass
             else:
                 boost_dir = os.path.join(boost_root, boost_dir)
                 self.include_dirs.append(boost_dir)
-            
+
         with self.add(self.sources, self.dbase) as add:
             add("pickle.pyx")
 
@@ -94,22 +98,21 @@ class Pickle(LarchExtension):
             add("pack.hpp")
             add("conversion.hpp")
 
-        
-ext_modules = [ Pickle() ]
+
+ext_modules = [Pickle()]
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
 
 setup(
     name="larch-pickle",
     version="1.1.2",
-    packages=find_packages(),
-    
+    packages=["larch"],
+
     # metadata for upload to PyPI
     author='Michael Reithinger',
 
     # Project uses reStructuredText, so ensure that the docutils get
     # installed or upgraded on the target machine
-    install_requires=['setuptools>=0.6c9'],
     include_package_data=True,
     namespace_packages=['larch'],
     zip_safe=False,
@@ -121,11 +124,9 @@ setup(
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
-        "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
+        "License :: OSI Approved :: "
+        "GNU Lesser General Public License v3 or later (LGPLv3+)",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.3",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-             ],
-
-    cmdclass={"build_ext": build_ext}, ext_modules=ext_modules,
-)
+        "Topic :: Software Development :: Libraries :: Python Modules"],
+    cmdclass={"build_ext": build_ext}, ext_modules=ext_modules)

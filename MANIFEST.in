@@ -1,3 +1,4 @@
 include *.md
+include README.rst
 recursive-include larch *.hpp
 graft tests

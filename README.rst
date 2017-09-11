@@ -1,10 +1,7 @@
-larch.pickle - A secure python pickle replacement
-=================================================
+larch.pickle - A fast python pickle replacement
+===============================================
 
-This module can be used as transparent replacement for pickle. It does
-not suffer the vulnerability of original pickle described in the following
-article:
-http://michael-rushanan.blogspot.de/2012/10/why-python-pickle-is-insecure.html.
+This module can be used as transparent replacement for pickle.
 
 Difference to original python pickle:
 
@@ -16,7 +13,7 @@ Difference to original python pickle:
       to `false`, the pickler will ignore object references. This can result
       in an extra speed boost.
 
-    
+
 Installation
 ------------
 
@@ -142,4 +139,3 @@ ujson           4.14067
 json            5.20221
 cPickle         8.1974
 ============  =========
-

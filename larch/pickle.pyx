@@ -41,7 +41,7 @@ msg-pack byte type
 """
 
 import sys
-import types 
+import types
 from libc.string cimport memcpy
 from libcpp cimport bool
 from cpython.bytes cimport (
@@ -73,7 +73,7 @@ cdef extern from "structmember.h":
     ctypedef char uchar_t "unsigned char"
     size_t _PyLong_NumBits(object o)
     int _PyLong_AsByteArray(
-        PyLongObject* o, uchar_t* bytes, size_t n, 
+        PyLongObject* o, uchar_t* bytes, size_t n,
         int little_endian, int is_signed)
     int _PyLong_Sign(object o)
     object _PyLong_FromByteArray(
@@ -81,9 +81,9 @@ cdef extern from "structmember.h":
 	int little_endian, int is_signed)
 
 cdef extern from "Python.h":
-    char* Bytes_AS_STRING "PyBytes_AS_STRING"(object string) 
+    char* Bytes_AS_STRING "PyBytes_AS_STRING"(object string)
     PyObject* Object_GetAttrString "PyObject_GetAttrString"(object o, char *attr_name)
-    
+
 cdef extern from "pickle.hpp":
     ctypedef unsigned int   uint32_t
     ctypedef unsigned char  uint8_t
@@ -100,7 +100,7 @@ cdef extern from "pickle.hpp":
     cdef tp_new_t GET_NEW(object)
 
     cdef enum EXT_TYPES:
-        VERSION, LONG, REF, LIST, OBJECT, OBJECT_NEW, GLOBAL, SINGLETON, 
+        VERSION, LONG, REF, LIST, OBJECT, OBJECT_NEW, GLOBAL, SINGLETON,
         OLD_STYLE, INIT_ARGS, END_OBJECT_ITEMS, BYTES, UNISTR, OBJECT_NEW_CUSTOM,
         GLOBAL_OBJECT, COUNT_EXT_TYPES
 
@@ -111,7 +111,7 @@ IF False:
             print msg, v, "NULL"
         else:
             print msg, v, repr(o), hex(<size_t><PyObject*>o), (<PyObject*>o).ob_refcnt
-        
+
     debug = <debug_t>show_debug
 
 
@@ -120,12 +120,12 @@ cdef extern from "pack.hpp":
 
     cdef cppclass StringWriter:
         void reset()
-        int write(void* data, size_t size) 
-        object result() 
+        int write(void* data, size_t size)
+        object result()
 
     cdef cppclass TypeMap:
         void register_type(object key, pack_t saver)
-        
+
     cdef TypeMap pickle_registry
     cdef pack_t save_object_ptr
     cdef pack_t save_string_ptr
@@ -134,7 +134,7 @@ cdef extern from "pack.hpp":
     cdef cppclass Packer:
         PyObject*  pickler
         write_t do_write
-        
+
         Packer(object pickler, bool with_refs)
 
         bool save_ref(object o)
@@ -157,11 +157,11 @@ cdef extern from "pack.hpp":
 
     void save_none(Packer* p, object o)
     void save_bool(Packer* p, object o)
-    void save_int(Packer* p, object o) 
+    void save_int(Packer* p, object o)
     void save_float(Packer* p, object o)
     void save_tuple(Packer* p, object o)
-    void save_list(Packer* p, object o) 
-    void save_dict(Packer* p, object o) 
+    void save_list(Packer* p, object o)
+    void save_dict(Packer* p, object o)
     void save_bytes(Packer* p, object o)
     void save_unicode(Packer* p, object o)
     void save_str2(Packer* p, object o)
@@ -171,7 +171,7 @@ cdef extern from "pack.hpp":
 cdef extern from "unpack.hpp":
     ctypedef PyObject* (*unpack_t)(
         Unpacker* p, uint8_t code, size_t size)
-    
+
     cdef unpack_t unpickle_registry[]
 
     cdef cppclass StringReader:
@@ -226,8 +226,8 @@ cdef extern from "unpack.hpp":
     PyObject* load_bin8(Unpacker *p, uint8_t code, size_t size)
     PyObject* load_bin16(Unpacker *p, uint8_t code, size_t size)
     PyObject* load_bin32(Unpacker *p, uint8_t code, size_t size)
-    PyObject* load_str4(Unpacker *p, uint8_t code, size_t size) 
-    PyObject* load_str8(Unpacker *p, uint8_t code, size_t size) 
+    PyObject* load_str4(Unpacker *p, uint8_t code, size_t size)
+    PyObject* load_str8(Unpacker *p, uint8_t code, size_t size)
     PyObject* load_str16(Unpacker *p, uint8_t code, size_t size)
     PyObject* load_str32(Unpacker *p, uint8_t code, size_t size)
     PyObject* load_bytes(Unpacker* p, uint8_t code, size_t size)
@@ -240,7 +240,7 @@ cdef:
     dict extension_cache = copyreg._extension_cache
     dict modules = sys.modules
     _end_item = object()
-        
+
 
 cdef class Pickler
 cdef class Unpickler
@@ -276,11 +276,11 @@ cdef class OutputBuffer:
 
 cdef int write_buffer(object pickler, void* data, size_t size) except -1:
     return (<OutputBuffer>(<Pickler>pickler).file).writer.write(data, size)
-    
+
 
 cdef class _BufferContainer:
     cdef StringReader sreader
-    
+
     cdef _BufferContainer set(self, bytes buffer):
         self.sreader.data = buffer
         self.sreader.pos = 0
@@ -297,7 +297,7 @@ cdef class _FileLike:
     cdef:
         object write
         object read
-    
+
     def __init__(self, file_like):
         self.write = file_like.write
         self.read = file_like.read
@@ -313,7 +313,7 @@ cdef int read_file(object unpickler, void* data, size_t size) except -1:
         _FileLike f = (<Unpickler>unpickler).file
         bytes b = f.read(size)
         size_t rsize = PyBytes_GET_SIZE(b)
-        
+
     if rsize != size:
         raise EOFError()
 
@@ -382,11 +382,11 @@ cdef void save_long(Packer* p, object o):
 
     tmp = PyBytes_FromStringAndSize(NULL, nbytes)
     data = Bytes_AS_STRING(tmp)
-    
+
     if _PyLong_AsByteArray(<PyLongObject*>o, <uchar_t*>data, nbytes, 1, 1) < 0:
         throw_python_error()
 
-    if (sign < 0 and nbytes > 1 
+    if (sign < 0 and nbytes > 1
         and data[nbytes-1] == 0xff and (data[nbytes-2] & 0x80) != 0):
         nbytes -= 1
 
@@ -418,7 +418,7 @@ cdef inline int __save_oldstyle(Packer* p, object o) except -1:
 
 cdef void _save_oldstyle(Packer* p, object o):
     try:
-        __save_oldstyle(p, o) 
+        __save_oldstyle(p, o)
     except:
         reraise()
 
@@ -553,7 +553,7 @@ cdef inline int _save_object(Packer* p, object o) except -1:
         register_type(o, next_save_func)
 
     save_object_state(p, state)
-                    
+
 
 cdef void save_object(Packer* p, object o):
     try:
@@ -611,7 +611,7 @@ ELSE:
     string_type = <void*>_string_type
     save_string_ptr = save_str2
     register_type(unicode(), save_unicode)
-    
+
 
 # The Pickler class and its utilities
 # -----------------------------------
@@ -645,7 +645,7 @@ cdef class Pickler:
         pack_import_names_t pack_import_names
         public dict dispatch_table
         public uint32_t last_refcount
-        
+
     def __init__(self, file=None, protocol=3, with_refs=True):
         IF PY_MAJOR_VERSION < 3:
             self.protocol = 2
@@ -679,7 +679,7 @@ cdef class Pickler:
 
     cdef int pack_import2(self, uint8_t code, module, name) except -1:
         cdef PyObject *rcode
-            
+
         rcode = PyDict_GetItem(extension_registry, (module, name))
         if rcode is NULL:
             self.packer.pack_ext(code, 1)
@@ -687,7 +687,7 @@ cdef class Pickler:
         else:
             self.packer.pack_ext(code, 0)
             self.packer.write_int(<uint32_t><object>rcode)
-        
+
     cdef int check_init(self) except -1:
         if self.file is None:
             raise PicklingError(
@@ -754,12 +754,12 @@ cdef object _load_object(Unpacker *p, obj, uint8_t code):
                 obj_value = <dict>PyTuple_GET_ITEM(state, 1)
                 for k, v in obj_value.items():
                     setattr(obj, k, v)
-                
+
                 state = <object>PyTuple_GET_ITEM(state, 0)
 
             if state is not None:
                 PyDict_Update(obj.__dict__, state)
-        
+
     return obj
 
 
@@ -814,7 +814,7 @@ cdef object load_end_item(Unpacker *p, uint8_t code, size_t size):
 
 cdef object load_ref(Unpacker* p, uint8_t code, size_t size):
     cdef:
-        uint32_t ido 
+        uint32_t ido
         PyObject* obj
 
     p.read32(&ido)
@@ -913,7 +913,7 @@ cdef object call_sub_find_class(Unpickler unpickler, module, name):
 
 
 ctypedef object (*default_find_class_t)(module, name)
-    
+
 
 cdef object simple_find_class(module, name):
     cdef PyObject* tmp
@@ -924,7 +924,7 @@ cdef object simple_find_class(module, name):
         except TypeError as e:
             e.args += (module, name)
             raise
-        
+
         module = sys.modules[module]
     else:
         module = <object>tmp
@@ -935,8 +935,8 @@ cdef object simple_find_class(module, name):
 IF PY_MAJOR_VERSION > 2:
     cdef object mapped_find_class(module, name):
         cdef:
-            PyObject* tmp 
-        
+            PyObject* tmp
+
         tmp = PyDict_GetItem(name_mapping_2to3, (module, name))
         if tmp is not NULL:
             module, name = <object>tmp
@@ -967,7 +967,7 @@ cdef class Unpickler:
             self.call_find_class = call_sub_find_class
 
         self.default_find_class = simple_find_class
-                          
+
         if isinstance(file, bytes):
             self.file = _BufferContainer().set(file)
             self.unpacker.do_read = read_buffer
@@ -987,7 +987,7 @@ cdef class Unpickler:
                 self.default_find_class = mapped_find_class
             else:
                 self.default_find_class = simple_find_class
-                
+
     cdef object unpack_import(self, size_t size):
         cdef:
             uint32_t rcode
@@ -1003,7 +1003,7 @@ cdef class Unpickler:
             key = PyDict_GetItem(inverted_registry, ocode)
             if key is NULL:
                 raise KeyError(rcode)
-            
+
             module, name = <object>key
             obj = self.call_find_class(self, module, name)
             extension_cache[ocode] = obj
@@ -1021,7 +1021,7 @@ cdef class Unpickler:
 
     def find_class(self, str module, str name):
         return self.default_find_class(module, name)
-        
+
     def load(self):
         self.check_init()
         try:
