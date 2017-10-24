@@ -1,5 +1,5 @@
-larch.pickle - A fast python pickle replacement
-===============================================
+larch.pickle - A faster python pickle replacement
+=================================================
 
 This module can be used as transparent replacement for pickle.
 

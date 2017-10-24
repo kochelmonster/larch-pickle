@@ -21,7 +21,7 @@ using namespace boost::container;
 #define MIN_STRING_SIZE_FOR_REF 5
 
 enum EXT_TYPES {
-  VERSION=0, LONG, LIST, OBJECT, OBJECT_NEW, GLOBAL, SINGLETON, 
+  VERSION=0, LONG, LIST, OBJECT, OBJECT_NEW, GLOBAL, SINGLETON,
   OLD_STYLE, INIT_ARGS, END_OBJECT_ITEMS, BYTES, UNISTR, OBJECT_NEW_CUSTOM,
   GLOBAL_OBJECT, COUNT_EXT_TYPES
 };
@@ -51,4 +51,3 @@ inline void throw_python_error() {
 #define GET_NEW(obj) (((PyTypeObject*)(obj))->tp_new)
 
 #endif
-

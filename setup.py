@@ -88,6 +88,9 @@ class Pickle(LarchExtension):
                 boost_dir = os.path.join(boost_root, boost_dir)
                 self.include_dirs.append(boost_dir)
 
+        # disable cython typedef of uint8_t
+        self.define_macros.extend([("_MSC_STDINT_H_", None)])
+
         with self.add(self.sources, self.dbase) as add:
             add("pickle.pyx")
 
@@ -105,7 +108,7 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 
 setup(
     name="larch-pickle",
-    version="1.1.2",
+    version="1.1.3",
     packages=["larch"],
 
     # metadata for upload to PyPI
@@ -117,7 +120,7 @@ setup(
     namespace_packages=['larch'],
     zip_safe=False,
 
-    description="A secure python pickle replacement",
+    description="A faster python pickle replacement",
     keywords="library",
     url="https://github.com/kochelmonster/larch-pickle",
     long_description=open(os.path.join(module_dir, "README.rst"), "r").read(),
