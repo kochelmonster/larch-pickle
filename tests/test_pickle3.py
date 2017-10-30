@@ -121,7 +121,7 @@ def create_dynamic_class(name, bases):
     result.reduce_args = (name, bases)
     return result
 
-# set([1,2]) pickled from 2.x 
+# set([1,2]) pickled from 2.x
 DATA3 = (b'\xd4\x00\x02\xd4\x03\xd4\x05\xab__builtin__\xa3set\x91\xd5\x02\x01\x02\xc0\xc7\x00\t\xc7\x00\t')
 
 # xrange(5) pickled from 2.x with protocol 2
@@ -182,7 +182,7 @@ class _Neg(object):
 
     def __eq__(self, other):
         return self.value == other.value
-        
+
 
 class AbstractDataPickleTests(object):
     def test_pickle_impossible(self):
@@ -200,7 +200,7 @@ class AbstractDataPickleTests(object):
         self.assertEqual(x.obj, y.obj)
         self.assertEqual(x.method, y.method)
         self.assertEqual(x.kwargs, y.kwargs)
-        
+
         x = Verb("service_id", "handle", sequence=iter([1, 2, 3]))
         self.assertRaises(pickle.PicklingError, self.dumps, x)
 
@@ -212,7 +212,7 @@ class AbstractDataPickleTests(object):
         self.assertEqual(x.kwargs, y.kwargs)
 
     def test_slot_with_getstate(self):
-        x = [[b'\xe5\xb5\xbbO\xf0|\xaaQpMz\xb4', None, 
+        x = [[b'\xe5\xb5\xbbO\xf0|\xaaQpMz\xb4', None,
               (_Neg((4, b'\xe5\xb5\xbbO\xf0|\xaaQpMz\xb4')),)]]
         s = self.dumps(x)
         y = self.loads(s)
@@ -735,7 +735,7 @@ class AbstractPickleTests(object):
         y = self.loads(x)
         self.assertEqual(repr(t), repr(y))
 
-            
+
 class BigmemPickleTests(object):
 
     # Binary protocols can serialize longs of up to 2GB-1
@@ -1031,10 +1031,10 @@ class AbstractPicklerUnpicklerObjectTests(object):
 
 class PickleTests(
         AbstractDataPickleTests,
-        AbstractPickleTests, AbstractPickleModuleTests, 
+        AbstractPickleTests, AbstractPickleModuleTests,
         AbstractAttackPickleTests, BigmemPickleTests,
         unittest.TestCase):
-    
+
     def setUp(self):
         super(PickleTests, self).setUp()
         self._pickler = pickle.Pickler()

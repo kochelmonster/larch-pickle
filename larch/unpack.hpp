@@ -46,7 +46,7 @@ inline uint32_t index(uint32_t key) {
 struct UnrefMap: public vector<PointerPage> {
   uint32_t ref_counter;
 
-  UnrefMap() : ref_counter(1) { 
+  UnrefMap() : ref_counter(1) {
     resize(1);
     data()[0].refs[0] = NULL;
   }
@@ -105,7 +105,7 @@ struct Unpacker {
   UnrefMap refs;
   buffer_t read_buffer;
 
-  Unpacker(PyObject *unpickler) : unpickler(unpickler) { 
+  Unpacker(PyObject *unpickler) : unpickler(unpickler) {
     reset();
   }
 
@@ -125,7 +125,7 @@ struct Unpacker {
     if (ref)
       refs.stamp(ref, o);
   }
-  
+
   inline void stamp(PyObject* o) {
     stamp(get_stamp(), o);
   }
@@ -146,7 +146,7 @@ struct Unpacker {
     decode(value);
   }
 
-  inline void read8(uint8_t* value) { 
+  inline void read8(uint8_t* value) {
     if (do_read(unpickler, value, sizeof(uint8_t)) == -1)
       throw PythonError();
   }
@@ -273,7 +273,7 @@ inline PyObject* _load_array(Unpacker *p, size_t size) {
   uint32_t stamp = p->get_stamp();
 
   r = PyTuple_New(capacity);
-  if (!r) 
+  if (!r)
     throw PythonError();
 
   try {
@@ -289,7 +289,7 @@ inline PyObject* _load_array(Unpacker *p, size_t size) {
 	}
       }
       p->change_stamp(stamp, r); // r may have change
-      
+
       for(; i < capacity; i++) {
 	o = p->load();
 	PyTuple_SET_ITEM(r, i, o);
@@ -326,7 +326,7 @@ inline PyObject* load_list(Unpacker *p, uint8_t code, size_t size) {
   /* to defend dos attacks leading to uncontrolled allocation
      only maximal 0xFFFF items will be preallocated. */
   r = PyList_New(save_size);
-  if (!r) 
+  if (!r)
     throw PythonError();
 
   try {
@@ -360,7 +360,7 @@ inline PyObject* load_long(Unpacker *p, uint8_t code, size_t size) {
 
     result = _PyLong_FromByteArray
       ((unsigned char*)PyBytes_AS_STRING(buffer), size, 1, 1);
-  
+
     if (!result)
       throw PythonError();
 
@@ -408,7 +408,7 @@ inline PyObject* _load_map(Unpacker* p, size_t size) {
   PyObject *r = PyDict_New(), *key = NULL, *value = NULL;
   if (!r)
     throw PythonError();
- 
+
   try {
     p->stamp(r);
     for (i = 0; i < size; i++) {
@@ -473,12 +473,14 @@ inline PyObject* _load_bytes(Unpacker* p, size_t size, int interned) {
 
 inline PyObject* _load_unicode(Unpacker* p, size_t size, int interned) {
   PyObject* result = NULL;
-  
+
   p->read_buffer.reserve(size);
-  
   try {
     p->read(p->read_buffer.data(), size);
     result = PyUnicode_DecodeUTF8(p->read_buffer.data(), size, "surrogatepass");
+    if (!result)
+      throw PythonError();
+
 #if PY_MAJOR_VERSION > 2
     if (interned)
       PyUnicode_InternInPlace(&result);
@@ -491,7 +493,7 @@ inline PyObject* _load_unicode(Unpacker* p, size_t size, int interned) {
     Py_XDECREF(result);
     throw;
   }
-    
+
   return result;
 }
 
@@ -541,7 +543,7 @@ inline PyObject* load_bin32(Unpacker* p, uint8_t code, size_t size) {
 
 inline PyObject* load_bytes(Unpacker* p, uint8_t code, size_t size) {
   PyObject* bin = PyBytes_FromStringAndSize(NULL, size);
-  if (!bin) 
+  if (!bin)
     throw PythonError();
 
   try {
@@ -565,7 +567,7 @@ void myterminate(int sig) {
 
 struct SetTerminate {
   SetTerminate() {
-    signal(SIGSEGV, myterminate); 
+    signal(SIGSEGV, myterminate);
   }
 };
 

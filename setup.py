@@ -58,7 +58,7 @@ class LarchExtension(Extension):
             self.define_macros.extend([("DEBUG", None)])
 
             # profile
-            self.libraries.extend(["profiler"])
+            # self.libraries.extend(["profiler"])
             # self.define_macros.extend([ ("CYTHON_TRACE", 1) ])
 
         else:
@@ -108,7 +108,7 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 
 setup(
     name="larch-pickle",
-    version="1.1.3",
+    version="1.1.4",
     packages=["larch"],
 
     # metadata for upload to PyPI
