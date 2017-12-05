@@ -1,7 +1,7 @@
 import sys
 import os.path
 import os
-from distutils.core import setup
+from setuptools import setup
 from Cython.Distutils import build_ext, Extension
 from contextlib import contextmanager
 
