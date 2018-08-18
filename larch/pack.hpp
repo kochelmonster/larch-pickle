@@ -541,7 +541,7 @@ inline void save_str3(Packer* p, PyObject* o) {
 
   if (size > MIN_STRING_SIZE_FOR_REF && p->save_ref(o)) return;
 
-  char* buffer = PyUnicode_AsUTF8AndSize(o, &size);
+  const char* buffer = PyUnicode_AsUTF8AndSize(o, &size);
   if (!buffer) {
     // Try with surrogates
     PyErr_Clear();

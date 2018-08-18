@@ -5,7 +5,7 @@ from distutils.core import setup
 from Cython.Distutils import build_ext, Extension
 from contextlib import contextmanager
 
-compile_debug = False
+compile_debug = os.environ.get("LARCH_INSTALL_FOR_TEST")
 
 
 class LarchExtension(Extension):
@@ -82,7 +82,7 @@ class Pickle(LarchExtension):
                 boost_dir = max(sorted(
                     (map(int, dname.split("_")[1:]), dname)
                     for dname in boost_dir))[1]
-            except StandardError:
+            except Exception:
                 pass
             else:
                 boost_dir = os.path.join(boost_root, boost_dir)
@@ -108,7 +108,7 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 
 setup(
     name="larch-pickle",
-    version="1.1.4",
+    version="1.1.5",
     packages=["larch"],
 
     # metadata for upload to PyPI
