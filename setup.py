@@ -108,7 +108,7 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 
 setup(
     name="larch-pickle",
-    version="1.1.5",
+    version="1.1.6",
     packages=["larch"],
 
     # metadata for upload to PyPI

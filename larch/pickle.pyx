@@ -42,6 +42,7 @@ msg-pack byte type
 
 import sys
 import types
+import cython
 from libc.string cimport memcpy
 from libcpp cimport bool
 from cpython.bytes cimport (
@@ -258,6 +259,7 @@ ctypedef int (*read_file_t)(object file, void *data, size_t size)
 
 
 # String Buffer
+@cython.auto_pickle(False)
 cdef class OutputBuffer:
     cdef StringWriter *writer
 
@@ -278,6 +280,7 @@ cdef int write_buffer(object pickler, void* data, size_t size) except -1:
     return (<OutputBuffer>(<Pickler>pickler).file).writer.write(data, size)
 
 
+@cython.auto_pickle(False)
 cdef class _BufferContainer:
     cdef StringReader sreader
 
@@ -293,6 +296,7 @@ cdef inline int read_buffer(object unpickler, void* buffer, size_t size) except 
 
 
 # Python Filelike
+@cython.auto_pickle(False)
 cdef class _FileLike:
     cdef:
         object write
@@ -321,7 +325,7 @@ cdef int read_file(object unpickler, void* data, size_t size) except -1:
     return 1
 
 # External (cython) filelike
-
+@cython.auto_pickle(False)
 cdef class ExternFileLike:
     cdef:
         object file
@@ -637,6 +641,7 @@ IF PY_MAJOR_VERSION > 2:
         simple_pack(p, module, name)
 
 
+@cython.auto_pickle(False)
 cdef class Pickler:
     cdef:
         object file
@@ -948,6 +953,7 @@ IF PY_MAJOR_VERSION > 2:
         return simple_find_class(module, name)
 
 
+@cython.auto_pickle(False)
 cdef class Unpickler:
     cdef:
         object file
