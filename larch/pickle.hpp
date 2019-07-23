@@ -5,7 +5,7 @@
 #include <boost/unordered_map.hpp>
 #include <boost/container/string.hpp>
 #include <boost/container/vector.hpp>
-#include "conversion.hpp"
+#include <boost/endian/conversion.hpp>
 #include <Python.h>
 #include <stdio.h>
 
@@ -15,8 +15,8 @@ using namespace boost::container;
 
 /*#define encode native_to_little
   #define decode little_to_native*/
-#define encode native_to_big
-#define decode big_to_native
+#define encode native_to_big_inplace
+#define decode big_to_native_inplace
 
 #define MIN_STRING_SIZE_FOR_REF 5
 

@@ -99,7 +99,6 @@ class Pickle(LarchExtension):
             add("pickle.hpp")
             add("unpack.hpp")
             add("pack.hpp")
-            add("conversion.hpp")
 
 
 ext_modules = [Pickle()]
@@ -108,7 +107,7 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 
 setup(
     name="larch-pickle",
-    version="1.1.6",
+    version="1.1.7",
     packages=["larch"],
 
     # metadata for upload to PyPI
