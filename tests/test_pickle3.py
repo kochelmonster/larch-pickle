@@ -3,6 +3,7 @@ import unittest
 import pickle as opickle
 import larch.pickle as pickle
 import sys
+import os
 import copyreg
 from http.cookies import SimpleCookie
 
@@ -23,6 +24,7 @@ character_size = 4 if sys.maxunicode > 0xFFFF else 2
 import platform
 if platform.architecture()[0] == '64bit':
     set_memlimit("4G")
+
 
 class UnseekableIO(io.BytesIO):
     def peek(self, *args):
@@ -152,7 +154,7 @@ def create_data():
     return x
 
 
-with open("test.data", "rb") as f:
+with open(os.path.join(os.path.dirname(__file__), "test.data"), "rb") as f:
     big_data = opickle.load(f, encoding="utf8")
 
 

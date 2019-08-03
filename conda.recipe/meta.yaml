@@ -1,0 +1,39 @@
+{% set data = load_setup_py_data(setup_file=RECIPE_DIR + "/../setup.py") %}
+
+package:
+  name: {{ data['name'] }}
+  version: {{ data['version'] }}
+
+source:
+  path: ..
+
+build:
+  number: 0
+  script: |
+    {{ PYTHON }} setup.py bdist_egg --exclude-source-files
+    {{ PYTHON }} -m easy_install --no-deps dist/*.egg
+
+requirements:
+  host:
+    - python
+    - cython
+
+  build:
+    - {{ compiler('cxx') }}
+    - boost
+    - pip
+
+test:
+  requires:
+    - python
+
+  source_files:
+    - tests
+
+  commands:
+    - python tests/test_pickle3.py -v
+
+about:
+  home: {{ data['url'] }}
+  license: {{ data['license'] }}
+  summary: {{ data['description'] }}
