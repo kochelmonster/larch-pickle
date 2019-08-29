@@ -7,9 +7,39 @@ package:
 source:
   path: ..
 
-build:
+build_windows: &bwindows
   number: 0
   preserve_egg_dir: True
+  script: |
+    move MANIFEST-conda.in MANIFEST.in
+    if errorlevel 1 exit 1
+
+    del /Q /F dist
+    if errorlevel 1 exit 1
+
+    del /Q /F build
+    if errorlevel 1 exit 1
+
+    "{{ PYTHON }}" setup.py bdist_egg --exclude-source-files
+    if errorlevel 1 exit 1
+
+    for /r %%i in (dist\*.egg) do "{{ PYTHON }}" -m easy_install --no-deps %%i
+    if errorlevel 1 exit 1
+
+    for /R %%f in ($SP_DIR\*) do del %%f
+
+build_unix: &bunix
+  number: 0
+  preserve_egg_dir: True
+  script: |
+    mv MANIFEST-conda.in MANIFEST.in
+    rm -rf build
+    rm -rf dist
+    {{ PYTHON }} setup.py bdist_egg --exclude-source-files
+    {{ PYTHON }} -m easy_install --no-deps dist/*.egg
+
+build: *bwindows   # [win]
+build: *bunix      # [not win]
 
 requirements:
   host:
@@ -18,7 +48,7 @@ requirements:
 
   build:
     - {{ compiler('cxx') }}
-    - boost
+    - boost-cpp
     - pip
 
 test:
