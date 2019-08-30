@@ -11,13 +11,10 @@ build_windows: &bwindows
   number: 0
   preserve_egg_dir: True
   script: |
-    move MANIFEST-conda.in MANIFEST.in
+    rmdir /Q /S dist
     if errorlevel 1 exit 1
 
-    del /Q /F dist
-    if errorlevel 1 exit 1
-
-    del /Q /F build
+    rmdir /Q /S build
     if errorlevel 1 exit 1
 
     "{{ PYTHON }}" setup.py bdist_egg --exclude-source-files
@@ -32,7 +29,6 @@ build_unix: &bunix
   number: 0
   preserve_egg_dir: True
   script: |
-    mv MANIFEST-conda.in MANIFEST.in
     rm -rf build
     rm -rf dist
     {{ PYTHON }} setup.py bdist_egg --exclude-source-files
