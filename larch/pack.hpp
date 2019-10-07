@@ -166,13 +166,13 @@ struct Packer {
     }
 
     if (value < -32) {
-      unsigned char buf[2] = {0xd0, v};
+      unsigned char buf[2] = {0xd0, (unsigned char)v};
       write(buf, sizeof(buf));
       return true;
     }
 
     // value > 0x7f
-    unsigned char buf[2] = {0xcc, v};
+    unsigned char buf[2] = {0xcc, (unsigned char)v};
     write(buf, sizeof(buf));
     return true;
   }
