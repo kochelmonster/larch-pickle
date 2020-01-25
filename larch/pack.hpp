@@ -36,7 +36,7 @@ struct Packer;
 
 typedef void (*pack_t)(Packer* p, PyObject* o);
 
-struct TypeMap: public unordered_map<PyObject*, pack_t> {
+struct TypeMap : public unordered_map<PyObject*, pack_t> {
   pack_t get(PyObject* key) {
     iterator found = find(key);
     return found != end() ? found->second : NULL;
@@ -51,24 +51,29 @@ struct TypeMap: public unordered_map<PyObject*, pack_t> {
 struct BaseRefHandler {
   virtual bool save_ref(Packer* p, PyObject *o) = 0;
   virtual uint32_t reset() = 0;
-  virtual ~BaseRefHandler() {}
+  virtual ~BaseRefHandler() {
+  }
 };
 
 
-struct DumyRefHandler: public BaseRefHandler {
-  virtual bool save_ref(Packer* p, PyObject *o) { return false; }
-  virtual uint32_t reset() { return 0; }
+struct DumyRefHandler : public BaseRefHandler {
+  virtual bool save_ref(Packer* p, PyObject *o) {
+    return false;
+  }
+  virtual uint32_t reset() {
+    return 0;
+  }
 };
 
 
 typedef unordered_map<PyObject*, uint32_t> refmap_t;
 
-struct RefHandler: public BaseRefHandler {
+struct RefHandler : public BaseRefHandler {
   refmap_t refs;
   uint32_t ref_counter;
-  PyObject* string_refs; // for strings the python dict is more efficent
+  PyObject* string_refs;       // for strings the python dict is more efficent
 
-  RefHandler(): ref_counter(0) {
+  RefHandler() : ref_counter(0) {
     string_refs = PyDict_New();
     if (!string_refs)
       throw PythonError();
@@ -90,27 +95,27 @@ struct RefHandler: public BaseRefHandler {
 
 
 /*
-template<typename T> void show_map(T x) {
-  size_t count = x.bucket_count(), m = 0, i, s, c=0, a=0;
+   template<typename T> void show_map(T x) {
+   size_t count = x.bucket_count(), m = 0, i, s, c=0, a=0;
 
 
-  for(i = 0; i < count; i++) {
+   for(i = 0; i < count; i++) {
     s = x.bucket_size(i);
     if (s) {
       if (m < s) m = s;
       c++;
       a += s;
     }
-  }
+   }
 
-  printf("bucket count: %lu\n", count);
-  printf("load factor: %f\n", x.load_factor());
-  printf("max bucket size: %lu\n", m);
-  printf("avg bucket size: %f\n", (float)a/(float)c);
-  printf("object count: %lu\n", a);
-  printf("non empty bucket count: %lu\n", c);
-}
-*/
+   printf("bucket count: %lu\n", count);
+   printf("load factor: %f\n", x.load_factor());
+   printf("max bucket size: %lu\n", m);
+   printf("avg bucket size: %f\n", (float)a/(float)c);
+   printf("object count: %lu\n", a);
+   printf("non empty bucket count: %lu\n", c);
+   }
+ */
 
 static void* string_type;
 static pack_t save_string_ptr;
@@ -277,8 +282,8 @@ struct Packer {
 
   void pack_array(size_t n) {
     if(n < 16) {
-        unsigned char d = 0x90 | n;
-	write(&d, sizeof(d));
+      unsigned char d = 0x90 | n;
+      write(&d, sizeof(d));
     } else if(n < 0xFFFF) {
       unsigned char buf[3] = {0xdc};
       to_buffer(buf, (uint16_t)n);
@@ -308,38 +313,38 @@ struct Packer {
   void pack_ext(int8_t typecode, size_t l) {
     switch(l) {
     case 1:
-      {
-	unsigned char buf[2] = { 0xd4, (unsigned char)typecode };
-	write(buf, sizeof(buf));
-	return;
-      }
+    {
+      unsigned char buf[2] = { 0xd4, (unsigned char)typecode };
+      write(buf, sizeof(buf));
+      return;
+    }
     case 2:
-      {
-	unsigned char buf[2] = { 0xd5, (unsigned char)typecode };
-	write(buf, sizeof(buf));
-	return;
-      }
+    {
+      unsigned char buf[2] = { 0xd5, (unsigned char)typecode };
+      write(buf, sizeof(buf));
+      return;
+    }
 
     case 4:
-      {
-	unsigned char buf[2] = { 0xd6, (unsigned char)typecode };
-	write(buf, sizeof(buf));
-	return;
-      }
+    {
+      unsigned char buf[2] = { 0xd6, (unsigned char)typecode };
+      write(buf, sizeof(buf));
+      return;
+    }
 
     case 8:
-      {
-	unsigned char buf[2] = { 0xd7, (unsigned char)typecode };
-	write(buf, sizeof(buf));
-	return;
-      }
+    {
+      unsigned char buf[2] = { 0xd7, (unsigned char)typecode };
+      write(buf, sizeof(buf));
+      return;
+    }
 
     case 16:
-      {
-	unsigned char buf[2] = { 0xd8, (unsigned char)typecode };
-	write(buf, sizeof(buf));
-	return;
-      }
+    {
+      unsigned char buf[2] = { 0xd8, (unsigned char)typecode };
+      write(buf, sizeof(buf));
+      return;
+    }
     }
 
     if (l < 256) {
@@ -347,37 +352,37 @@ struct Packer {
       write(buf, sizeof(buf));
     } else if (l < 65536) {
       unsigned char buf[4] = { 0xc8, 0, 0, (unsigned char)typecode };
-        to_buffer(buf, (uint16_t)l);
-	write(buf, sizeof(buf));
+      to_buffer(buf, (uint16_t)l);
+      write(buf, sizeof(buf));
     } else {
       unsigned char buf[6] = { 0xc9, 0, 0, 0, 0, (unsigned char)typecode };
-        to_buffer(buf, (uint32_t)l);
-        write(buf, sizeof(buf));
+      to_buffer(buf, (uint32_t)l);
+      write(buf, sizeof(buf));
     }
   }
 
   inline void pack_bin(size_t l) {
     if (l < 256) {
-        unsigned char buf[2] = {0xc4, (unsigned char)l};
-        write(buf, sizeof(buf));
+      unsigned char buf[2] = {0xc4, (unsigned char)l};
+      write(buf, sizeof(buf));
     } else if (l < 65536) {
-        unsigned char buf[3] = {0xc5};
-        to_buffer(buf, (uint16_t)l);
-        write(buf, sizeof(buf));
+      unsigned char buf[3] = {0xc5};
+      to_buffer(buf, (uint16_t)l);
+      write(buf, sizeof(buf));
     } else {
-        unsigned char buf[5] = {0xc6};
-        to_buffer(buf, (uint32_t)l);
-        write(buf, sizeof(buf));
+      unsigned char buf[5] = {0xc6};
+      to_buffer(buf, (uint32_t)l);
+      write(buf, sizeof(buf));
     }
   }
 
   inline void pack_str(size_t l) {
     if (l < 32) {
-        unsigned char d = 0xa0 | (uint8_t)l;
-         write(&d, sizeof(d));
+      unsigned char d = 0xa0 | (uint8_t)l;
+      write(&d, sizeof(d));
     } else if (l < 256) {
-        unsigned char buf[2] = {0xd9, (uint8_t)l};
-        write(buf, sizeof(buf));
+      unsigned char buf[2] = {0xd9, (uint8_t)l};
+      write(buf, sizeof(buf));
     } else if (l < 65536) {
       unsigned char buf[3] = { 0xda };
       to_buffer(buf, (uint16_t)l);
@@ -407,7 +412,7 @@ struct Packer {
     }
 
     pack_t packer = pickle_registry.get((PyObject*)type);
-    if (! packer) {
+    if (!packer) {
       save_object_ptr(this, o);
       return;
     }
@@ -456,7 +461,7 @@ inline bool RefHandler::save_ref(Packer* p, PyObject *o) {
   }
   else {
     uint32_t& refid = refs[o];
-    if (! refid) {
+    if (!refid) {
       refid = ++ref_counter;
       return false;
     }

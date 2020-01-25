@@ -1,4 +1,4 @@
-#cython: boundscheck=False, always_allow_keywords=False, profile=False
+#cython: boundscheck=False, always_allow_keywords=False, profile=False, language_level=3
 """
 
 Difference to python pickle:
@@ -109,9 +109,9 @@ cdef extern from "pickle.hpp":
 IF False:
     cdef show_debug(char* msg, object o, long v):
         if <PyObject*>o is NULL:
-            print msg, v, "NULL"
+            print(msg, v, "NULL")
         else:
-            print msg, v, repr(o), hex(<size_t><PyObject*>o), (<PyObject*>o).ob_refcnt
+            print(msg, v, repr(o), hex(<size_t><PyObject*>o), (<PyObject*>o).ob_refcnt)
 
     debug = <debug_t>show_debug
 
@@ -409,29 +409,6 @@ cdef void save_global(Packer* p, object o):
         reraise()
 
 
-cdef inline int __save_oldstyle(Packer* p, object o) except -1:
-    try:
-        init_args = o.__getinitargs__
-    except AttributeError:
-        (<Pickler>p.pickler).pack_import1(OLD_STYLE, o.__class__)
-        save_dict(p, o.__dict__)
-    else:
-        (<Pickler>p.pickler).pack_import1(INIT_ARGS, o.__class__)
-        p.dump(init_args())
-
-
-cdef void _save_oldstyle(Packer* p, object o):
-    try:
-        __save_oldstyle(p, o)
-    except:
-        reraise()
-
-
-cdef void save_oldstyle(Packer* p, object o):
-    if p.save_ref(o): return
-    _save_oldstyle(p, o)
-
-
 cdef inline void save_object_state(Packer* p, tuple state):
     cdef:
         size_t size
@@ -465,6 +442,10 @@ cdef inline void save_object_state(Packer* p, tuple state):
 cdef inline int _save_reduced(Packer* p, object o) except -1:
     if p.save_ref(o): return 0
     state = o.__reduce_ex__((<Pickler>p.pickler).protocol)
+    if isinstance(state, basestring):
+        (<Pickler>p.pickler).pack_import2(SINGLETON, o.__module__, state)
+        return 0
+
     p.pack_ext(OBJECT, 1)
     p.dump(<object>PyTuple_GET_ITEM(state, 0))
     p.dump(<object>PyTuple_GET_ITEM(state, 1))
@@ -481,6 +462,10 @@ cdef void save_reduced(Packer* p, object o):
 cdef inline int _save_new_object(EXT_TYPES type_, Packer* p, object o) except -1:
     if p.save_ref(o): return 0
     state = o.__reduce_ex__((<Pickler>p.pickler).protocol)
+    if isinstance(state, basestring):
+        (<Pickler>p.pickler).pack_import2(SINGLETON, o.__module__, state)
+        return 0
+
     p.pack_ext(type_, 1)
     p.dump(<object>PyTuple_GET_ITEM(state, 1))
     save_object_state(p, state)
@@ -510,26 +495,19 @@ cdef inline int _save_object(Packer* p, object o) except -1:
 
     reduce_func = PyDict_GetItem((<Pickler>p.pickler).dispatch_table, type(o))
     if reduce_func is NULL:
+        do_reduce = o.__reduce_ex__
         try:
-            do_reduce = o.__reduce_ex__
-        except AttributeError:
-            #an old style class
-            _save_oldstyle(p, o)
-            register_type(o, save_oldstyle)
+            state = do_reduce((<Pickler>p.pickler).protocol)
+        except TypeError:
+            # a meta class
+            try:
+                (<Pickler>p.pickler).pack_import1(GLOBAL_OBJECT, o)
+            except:
+                reraise()
             return 0
         else:
-            try:
-                state = do_reduce((<Pickler>p.pickler).protocol)
-            except TypeError:
-                # a meta class
-                try:
-                    (<Pickler>p.pickler).pack_import1(GLOBAL_OBJECT, o)
-                except:
-                    reraise()
-                return 0
-            else:
-                if not isinstance(state, basestring):
-                    next_save_func = save_reduced
+            if not isinstance(state, basestring):
+                next_save_func = save_reduced
     else:
         state = (<object>reduce_func)(o)
 
@@ -598,11 +576,6 @@ register_type(iter([]), save_impossible)
 register_type(iter(()), save_impossible)
 pickle_registry.register_type(types.GeneratorType, save_impossible)
 
-def inner_func(): pass
-register_type(inner_func, save_global)
-del inner_func
-
-pickle_registry.register_type(types.FunctionType, save_global)
 
 IF PY_MAJOR_VERSION > 2:
     #the string type will be used as first dump candidate!
@@ -791,7 +764,7 @@ cdef object load_object_new(Unpacker *p, uint8_t code, size_t size):
 
 cdef object load_singleton(Unpacker *p, uint8_t code, size_t size):
     cdef uint32_t stamp = p.get_stamp()
-    obj = (<Unpickler>p.unpickler).unpack_import(size)()
+    obj = (<Unpickler>p.unpickler).unpack_import(size)
     p.stamp(stamp, obj)
     return obj
 

@@ -17,8 +17,8 @@ struct StringReader {
 
   inline void read(void* buffer, size_t read_size) {
     if (pos+read_size > size) {
-        PyErr_SetNone(PyExc_EOFError);
-	throw PythonError();
+      PyErr_SetNone(PyExc_EOFError);
+      throw PythonError();
     }
     memcpy(buffer, data+pos, read_size);
     pos += read_size;
@@ -43,14 +43,16 @@ inline uint32_t index(uint32_t key) {
 }
 
 
-struct UnrefMap: public vector<PointerPage> {
+struct UnrefMap : public vector<PointerPage> {
   uint32_t ref_counter;
 
   UnrefMap() : ref_counter(1) {
     resize(1);
     data()[0].refs[0] = NULL;
   }
-  ~UnrefMap() { reset(); }
+  ~UnrefMap() {
+    reset();
+  }
 
   PyObject* get(uint32_t key) {
     if (key < ref_counter) {
@@ -84,8 +86,8 @@ struct UnrefMap: public vector<PointerPage> {
       end = i + 1024;
       if (end > ref_counter) end = ref_counter;
       for(j = i; j < end; j++, p++) {
-	Py_CLEAR(*p);
-	*p = NULL;
+        Py_CLEAR(*p);
+        *p = NULL;
       }
     }
     ref_counter = 1;
@@ -150,9 +152,15 @@ struct Unpacker {
     if (do_read(unpickler, value, sizeof(uint8_t)) == -1)
       throw PythonError();
   }
-  inline void read16(uint16_t* value) { read(*value); }
-  inline void read32(uint32_t* value) { read(*value); }
-  inline void read64(uint64_t* value) { read(*value); }
+  inline void read16(uint16_t* value) {
+    read(*value);
+  }
+  inline void read32(uint32_t* value) {
+    read(*value);
+  }
+  inline void read64(uint64_t* value) {
+    read(*value);
+  }
 
 
   PyObject* load() {
@@ -279,20 +287,20 @@ inline PyObject* _load_array(Unpacker *p, size_t size) {
   try {
     while(i < size) {
       if (i >= capacity) {
-	capacity = i << 1;
-	if (capacity > size) capacity = size;
+        capacity = i << 1;
+        if (capacity > size) capacity = size;
 
-	if (_PyTuple_Resize(&r, capacity) < 0) {
-	  // will raise error if a recursive tuple declaration occurs
-	  // because of obj_refcount > 1
-	  throw PythonError();
-	}
+        if (_PyTuple_Resize(&r, capacity) < 0) {
+          // will raise error if a recursive tuple declaration occurs
+          // because of obj_refcount > 1
+          throw PythonError();
+        }
       }
       p->change_stamp(stamp, r); // r may have change
 
       for(; i < capacity; i++) {
-	o = p->load();
-	PyTuple_SET_ITEM(r, i, o);
+        o = p->load();
+        PyTuple_SET_ITEM(r, i, o);
       }
     }
   }
@@ -337,7 +345,7 @@ inline PyObject* load_list(Unpacker *p, uint8_t code, size_t size) {
     }
 
     // very unprobable
-    for(;i < size; i++) {
+    for(; i < size; i++) {
       o = p->load();
       PyList_Append(r, o);
     }
@@ -359,7 +367,7 @@ inline PyObject* load_long(Unpacker *p, uint8_t code, size_t size) {
     p->read(PyBytes_AS_STRING(buffer), size);
 
     result = _PyLong_FromByteArray
-      ((unsigned char*)PyBytes_AS_STRING(buffer), size, 1, 1);
+               ((unsigned char*)PyBytes_AS_STRING(buffer), size, 1, 1);
 
     if (!result)
       throw PythonError();
@@ -415,7 +423,7 @@ inline PyObject* _load_map(Unpacker* p, size_t size) {
       key = p->load();
       value = p->load();
       if (PyDict_SetItem(r, key, value) < 0)
-	throw PythonError();
+        throw PythonError();
 
       Py_DECREF(key);
       Py_DECREF(value);
@@ -557,20 +565,20 @@ inline PyObject* load_bytes(Unpacker* p, uint8_t code, size_t size) {
 }
 
 /*
-#include <unistd.h>
-#include <signal.h>
-void myterminate(int sig) {
-  printf("sigegv exception: %i\n", getpid());
-  sleep(1000);
-}
+ #include <unistd.h>
+ #include <signal.h>
+   void myterminate(int sig) {
+   printf("sigegv exception: %i\n", getpid());
+   sleep(1000);
+   }
 
 
-struct SetTerminate {
-  SetTerminate() {
+   struct SetTerminate {
+   SetTerminate() {
     signal(SIGSEGV, myterminate);
-  }
-};
+   }
+   };
 
-SetTerminate s;
-*/
+   SetTerminate s;
+ */
 #endif
