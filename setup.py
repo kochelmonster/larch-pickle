@@ -27,7 +27,7 @@ class LarchExtension(Extension):
         self.check_cplusplus()
         self.add_optimize_flag()
 
-        conda_prefix = os.environ.get("BUILD_PREFIX")
+        conda_prefix = os.environ.get("CONDA_PREFIX")
         if conda_prefix:
             self.include_dirs.append(os.path.join(conda_prefix, "include"))
             if self.platform == "win32":
