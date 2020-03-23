@@ -442,6 +442,7 @@ cdef inline void save_object_state(Packer* p, tuple state):
 cdef inline int _save_reduced(Packer* p, object o) except -1:
     if p.save_ref(o): return 0
     state = o.__reduce_ex__((<Pickler>p.pickler).protocol)
+
     if isinstance(state, basestring):
         (<Pickler>p.pickler).pack_import2(SINGLETON, o.__module__, state)
         return 0
@@ -653,7 +654,7 @@ cdef class Pickler:
         del self.packer
 
     cdef int pack_import1(self, uint8_t code, o) except -1:
-        self.pack_import2(code, o.__module__, o.__name__)
+        self.pack_import2(code, o.__module__, o.__qualname__)
 
     cdef int pack_import2(self, uint8_t code, module, name) except -1:
         cdef PyObject *rcode
@@ -670,7 +671,7 @@ cdef class Pickler:
         if self.file is None:
             raise PicklingError(
                 "Pickler.__init__() was not called by "
-                "{}.__init__()".format((self.__class__.__name__,)))
+                "{}.__init__()".format((self.__class__.__qualname__,)))
 
     def dump(self, obj, bool with_version=True):
         self.check_init()
@@ -907,7 +908,12 @@ cdef object simple_find_class(module, name):
     else:
         module = <object>tmp
 
-    return getattr(module, name)
+    try:
+        return getattr(module, name)
+    except AttributeError:
+        for n in name.split("."):
+            module = getattr(module, n)
+        return module
 
 
 IF PY_MAJOR_VERSION > 2:
@@ -938,7 +944,7 @@ cdef class Unpickler:
 
     def __init__(self, file=b""):
         self.unpacker = new Unpacker(self)
-        #this is complicated but faster than ordinary subclassing
+        # this is complicated but faster than ordinary subclassing
         if isinstance(self.find_class, types.BuiltinMethodType):
             self.call_find_class = call_default_find_class
         else:
