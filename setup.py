@@ -92,7 +92,7 @@ class Pickle(LarchExtension):
         if boost_dir is not None:
             self.include_dirs.append(os.path.join(boost_dir, "include"))
 
-        elif self.platform == "win32":
+        elif self.platform == "win32" and not os.environ.get("CONDA_PREFIX"):
             boost_root = "c:\\local"
             try:
                 boost_dir = (
