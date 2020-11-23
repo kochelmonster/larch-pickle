@@ -733,7 +733,7 @@ class AbstractPickleTests(object):
             return
 
         t = (" " + SELF._docid, SELF.firstname + " ")
-        x = self.dumps(t)
+        x = self.dumps(t, proto=3)
         y = self.loads(x)
         self.assertEqual(repr(t), repr(y))
 

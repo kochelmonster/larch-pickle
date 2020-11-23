@@ -8,8 +8,6 @@ source:
   path: ..
 
 build_windows: &bwindows
-  number: 0
-  preserve_egg_dir: True
   script: |
     rmdir /Q /S dist
     if errorlevel 1 exit 1
@@ -26,16 +24,17 @@ build_windows: &bwindows
     for /R %%f in ($SP_DIR\*) do del %%f
 
 build_unix: &bunix
-  number: 0
-  preserve_egg_dir: True
   script: |
     rm -rf build
     rm -rf dist
     {{ PYTHON }} setup.py bdist_egg --exclude-source-files
     {{ PYTHON }} -m easy_install --no-deps dist/*.egg
 
-build: *bwindows   # [win]
-build: *bunix      # [not win]
+build:
+  number: 0
+  <<: *bwindows   # [win]
+  <<: *bunix      # [not win]
+
 
 requirements:
   host:
