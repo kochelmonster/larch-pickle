@@ -33,12 +33,12 @@ dump Dictionaries (10 loops)
 ============  =========  ========
 Package         Seconds      Size
 ============  =========  ========
-marshal        0.46141   15975952
-larch-pickle   0.664333   9714411
-ujson          1.94214   13141354
-msgpack        2.04704    9843459
-json           2.14117   14365311
-cPickle        4.09599   12781866
+larch-pickle   0.642136   9526217
+msgpack        0.77389    9810043
+marshal        0.85395   15975952
+ujson          1.51786   13101307
+Pickle-3.9.0   2.25929   10276493
+json           2.75167   14365311
 ============  =========  ========
 
 
@@ -48,12 +48,12 @@ load Dictionaries (10 loops)
 ============  =========
 Package         Seconds
 ============  =========
-msgpack         1.38378
-marshal         1.49512
-larch-pickle    1.51489
-ujson           2.42431
-cPickle         2.42524
-json            6.04131
+larch-pickle    1.6862
+Pickle-3.9.0    1.7676
+msgpack         1.85972
+marshal         1.92646
+ujson           2.03244
+json            2.1018
 ============  =========
 
 
@@ -63,9 +63,8 @@ dump Objects (10 loops)
 ============  =========  ========
 Package         Seconds      Size
 ============  =========  ========
-larch-pickle    1.07443  10094415
-ujson           2.55502  13331354
-cPickle         4.70805  12961909
+larch-pickle   0.735664   9826224
+Pickle-3.9.0   2.40565   10416542
 ============  =========  ========
 
 
@@ -75,9 +74,8 @@ load Objects (10 loops)
 ============  =========
 Package         Seconds
 ============  =========
-larch-pickle    1.6615
-ujson           2.45786
-cPickle         2.58697
+larch-pickle    1.78888
+Pickle-3.9.0    1.8409
 ============  =========
 
 
@@ -87,12 +85,12 @@ dump Strings (10 loops)
 ============  =========  ========
 Package         Seconds      Size
 ============  =========  ========
-marshal        0.56747   32826787
-msgpack        0.975226  29464951
-larch-pickle   1.16368   12103729
-json           1.19005   31966498
-ujson          1.51648   30987525
-cPickle        4.12952   19871780
+msgpack        0.430776  28782143
+marshal        0.635346  32481517
+larch-pickle   0.881418  10885236
+ujson          0.902386  30722275
+Pickle-3.9.0   1.0621    17726498
+json           1.62853   31701248
 ============  =========  ========
 
 
@@ -102,12 +100,12 @@ load Strings (10 loops)
 ============  =========
 Package         Seconds
 ============  =========
-larch-pickle   0.353255
-marshal        0.435936
-msgpack        0.469068
-cPickle        1.72308
-ujson          1.82656
-json           3.01798
+larch-pickle   0.352779
+Pickle-3.9.0   0.633761
+msgpack        0.878908
+marshal        0.892124
+json           1.18237
+ujson          1.47554
 ============  =========
 
 
@@ -117,12 +115,12 @@ dump Lists (10 loops)
 ============  =========  ========
 Package         Seconds      Size
 ============  =========  ========
-marshal        0.861886  42703907
-larch-pickle   2.33574   16054577
-json           3.11054   35917346
-ujson          4.4284    34938373
-msgpack        5.55321   31440375
-cPickle       15.5531    33700258
+marshal        0.914561  42358637
+larch-pickle   1.75087   14836084
+msgpack        2.17429   30757567
+ujson          2.44817   34673123
+json           4.43027   35652096
+Pickle-3.9.0   5.02901   23654090
 ============  =========  ========
 
 
@@ -132,10 +130,10 @@ load Lists (10 loops)
 ============  =========
 Package         Seconds
 ============  =========
-larch-pickle    2.07305
-marshal         2.14713
-msgpack         2.46054
-ujson           4.14067
-json            5.20221
-cPickle         8.1974
+larch-pickle    2.02687
+msgpack         2.46098
+marshal         2.68831
+json            3.11702
+ujson           3.53878
+Pickle-3.9.0    3.91016
 ============  =========

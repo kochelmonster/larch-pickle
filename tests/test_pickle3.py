@@ -17,7 +17,7 @@ from pickle import bytes_types
 # Tests that try a number of pickle protocols should have a
 #     for proto in protocols:
 # kind of outer loop.
-protocols = [3]
+protocols = [3, 4]
 
 character_size = 4 if sys.maxunicode > 0xFFFF else 2
 
@@ -620,7 +620,7 @@ class AbstractPickleTests(object):
             x = REX_two()
             self.assertEqual(x._proto, None)
             s = self.dumps(x, proto)
-            self.assertEqual(x._proto, proto)
+            self.assertEqual(x._proto, 4)
             y = self.loads(s)
             self.assertEqual(y._proto, None)
 
@@ -629,7 +629,7 @@ class AbstractPickleTests(object):
             x = REX_three()
             self.assertEqual(x._proto, None)
             s = self.dumps(x, proto)
-            self.assertEqual(x._proto, proto)
+            self.assertEqual(x._proto, 4)
             y = self.loads(s)
             self.assertEqual(y._proto, None)
 
@@ -638,9 +638,9 @@ class AbstractPickleTests(object):
             x = REX_four()
             self.assertEqual(x._proto, None)
             s = self.dumps(x, proto)
-            self.assertEqual(x._proto, proto)
+            self.assertEqual(x._proto, 4)
             y = self.loads(s)
-            self.assertEqual(y._proto, proto)
+            self.assertEqual(y._proto, 4)
 
     def test_reduce_calls_base(self):
         for proto in protocols:
@@ -650,6 +650,21 @@ class AbstractPickleTests(object):
             self.assertEqual(x._reduce_called, 1)
             y = self.loads(s)
             self.assertEqual(y._reduce_called, 1)
+
+    def test_reduce_sequence(self):
+        for proto in protocols:
+            x = REX_six([1, 2, 3])
+            s = self.dumps(x, proto)
+            y = self.loads(s)
+            self.assertEqual(y.items, [1, 2, 3])
+
+    def test_reduce_dict(self):
+        d = {1: -1, 2: -2, 3: -3}
+        for proto in protocols:
+            x = REX_seven(d)
+            s = self.dumps(x, proto)
+            y = self.loads(s)
+            self.assertEqual(y.table, d)
 
     def test_reduce_bad_iterator(self):
         # Issue4176: crash when 4th and 5th items of __reduce__()
@@ -823,65 +838,120 @@ class BigmemPickleTests(object):
 
 class REX_one(object):
     _reduce_called = 0
+
     def __reduce__(self):
         self._reduce_called = 1
         return REX_one, ()
     # No __reduce_ex__ here, but inheriting it from object
 
+
 class REX_two(object):
     _proto = None
+
     def __reduce_ex__(self, proto):
         self._proto = proto
         return REX_two, ()
     # No __reduce__ here, but inheriting it from object
 
+
 class REX_three(object):
     _proto = None
+
     def __reduce_ex__(self, proto):
         self._proto = proto
         return REX_two, ()
+
     def __reduce__(self):
         raise TestFailed("This __reduce__ shouldn't be called")
 
+
 class REX_four(object):
     _proto = None
+
     def __reduce_ex__(self, proto):
         self._proto = proto
         return object.__reduce_ex__(self, proto)
     # Calling base class method should succeed
 
+
 class REX_five(object):
     _reduce_called = 0
+
     def __reduce__(self):
         self._reduce_called = 1
         return object.__reduce__(self)
     # This one used to fail with infinite recursion
+
+
+class REX_six(object):
+    """This class is used to check the 4th argument (list iterator) of
+    the reduce protocol.
+    """
+
+    def __init__(self, items=None):
+        self.items = items if items is not None else []
+
+    def __eq__(self, other):
+        return type(self) is type(other) and self.items == other.items
+
+    def append(self, item):
+        self.items.append(item)
+
+    def __reduce__(self):
+        return type(self), (), None, iter(self.items), None
+
+
+class REX_seven(object):
+    """This class is used to check the 5th argument (dict iterator) of
+    the reduce protocol.
+    """
+
+    def __init__(self, table=None):
+        self.table = table if table is not None else {}
+
+    def __eq__(self, other):
+        return type(self) is type(other) and self.table == other.table
+
+    def __setitem__(self, key, value):
+        self.table[key] = value
+
+    def __reduce__(self):
+        return type(self), (), None, None, iter(self.table.items())
+
 
 # Test classes for newobj
 
 class MyInt(int):
     sample = 1
 
+
 class MyFloat(float):
     sample = 1.0
+
 
 class MyComplex(complex):
     sample = 1.0 + 0.0j
 
+
 class MyStr(str):
     sample = "hello"
+
 
 class MyUnicode(str):
     sample = "hello \u1234"
 
+
 class MyTuple(tuple):
     sample = (1, 2, 3)
+
 
 class MyList(list):
     sample = [1, 2, 3]
 
+
 class MyDict(dict):
     sample = {"a": 1, "b": 2}
+
 
 myclasses = [MyInt, MyFloat,
              MyComplex,
@@ -892,10 +962,12 @@ myclasses = [MyInt, MyFloat,
 class SlotList(MyList):
     __slots__ = ["foo"]
 
+
 class SimpleNewObj(object):
     def __init__(self, a, b, c):
         # raise an error, to make sure this isn't called
         raise TypeError("SimpleNewObj.__init__() didn't expect to get called")
+
 
 class BadGetattr:
     def __getattr__(self, key):
@@ -1030,7 +1102,6 @@ class AbstractPicklerUnpicklerObjectTests(object):
                 self.assertEqual(unpickler.load(), data)
 
 
-
 class PickleTests(
         AbstractDataPickleTests,
         AbstractPickleTests, AbstractPickleModuleTests,
@@ -1048,15 +1119,14 @@ class PickleTests(
         self.assertEqual(
             self._pickler.last_refcount, self._unpickler.last_refcount)
 
-    def dumps(self, arg, proto=3, fast=0):
-        if proto != 3:
+    def dumps(self, arg, proto=4, fast=0):
+        if proto != 4:
             return pickle.dumps(arg, protocol=proto)
         else:
             return self._dumps(arg)
 
     def loads(self, buf):
         return self._loads(buf)
-
 
     module = pickle
     error = KeyError

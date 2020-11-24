@@ -18,12 +18,12 @@ using namespace boost::container;
 #define encode native_to_big_inplace
 #define decode big_to_native_inplace
 
-#define MIN_STRING_SIZE_FOR_REF 5
+#define MIN_STRING_SIZE_FOR_REF 3
 
 enum EXT_TYPES {
   VERSION=0, LONG, LIST, OBJECT, OBJECT_NEW, GLOBAL, SINGLETON,
   OLD_STYLE, INIT_ARGS, END_OBJECT_ITEMS, BYTES, UNISTR, OBJECT_NEW_CUSTOM,
-  GLOBAL_OBJECT, COUNT_EXT_TYPES
+  GLOBAL_OBJECT, FAST_NEW, COUNT_EXT_TYPES
 };
 
 
@@ -46,7 +46,6 @@ class PythonError: std::exception {
 inline void throw_python_error() {
   throw PythonError();
 }
-
 
 #define GET_NEW(obj) (((PyTypeObject*)(obj))->tp_new)
 

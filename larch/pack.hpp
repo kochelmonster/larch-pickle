@@ -51,8 +51,7 @@ struct TypeMap : public unordered_map<PyObject*, pack_t> {
 struct BaseRefHandler {
   virtual bool save_ref(Packer* p, PyObject *o) = 0;
   virtual uint32_t reset() = 0;
-  virtual ~BaseRefHandler() {
-  }
+  virtual ~BaseRefHandler() { }
 };
 
 
@@ -126,6 +125,7 @@ static TypeMap pickle_registry;
 struct Packer {
   PyObject *pickler;
   write_t do_write;
+  int protocol;
   BaseRefHandler *refhandler;
 
   void set_refs(bool with_refs) {
@@ -136,8 +136,8 @@ struct Packer {
       refhandler = new DumyRefHandler();
   }
 
-  Packer(PyObject* pickler, bool with_refs)
-    : pickler(pickler), refhandler(NULL) {
+  Packer(PyObject* pickler, int protocol, bool with_refs)
+    : pickler(pickler), protocol(protocol), refhandler(NULL) {
     set_refs(with_refs);
   }
 
@@ -444,7 +444,7 @@ inline bool RefHandler::save_ref(Packer* p, PyObject *o) {
     return false;
   }
 
-  if (PyString_Check(o)) {
+  if (PyUnicode_Check(o) || PyString_Check(o)) {
     PyObject* c = PyDict_GetItem(string_refs, o);
     if (!c) {
       PyObject* i = PyInt_FromLong(++ref_counter);

@@ -14,7 +14,7 @@ except ImportError:
 import msgpack
 import json
 # import cjson
-# import ujson
+import ujson
 import marshal
 import larch.pickle as spickle
 
@@ -39,13 +39,13 @@ def mdump(x, f):
 
 
 serializers = (
-    ('cPickle', pdumps, pickle.loads),
+    ('Pickle-3.9.0', pdumps, pickle.loads),
     ('json', json.dumps, json.loads),
     # ('cjson', cjson.encode, cjson.decode),
-    # ('ujson', ujson.dumps, ujson.loads),
+    ('ujson', ujson.dumps, ujson.loads),
     ('msgpack', msgpack.dumps, msgpack.loads),
     ('marshal', mdumps, marshal.loads),
-    ('larch-pickle', spickle.Pickler(with_refs=True).dumps,
+    ('larch-pickle', spickle.Pickler(protocol=4, with_refs=True).dumps,
      spickle.Unpickler().loads),
 )
 
@@ -144,4 +144,12 @@ def main():
 
 
 if __name__ == "__main__":
+    """
+    import NGreenletProfiler
+    NGreenletProfiler.start(True)
+    main()
+    NGreenletProfiler.stop()
+    stats = NGreenletProfiler.get_func_stats()
+    stats.save("profile.callgrind", type="callgrind")
+    """
     main()

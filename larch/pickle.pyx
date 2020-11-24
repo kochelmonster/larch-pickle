@@ -1,4 +1,4 @@
-#cython: boundscheck=False, always_allow_keywords=False, profile=False, language_level=3
+#cython: boundscheck=False, always_allow_keywords=False, language_level=3, profile=False
 """
 
 Difference to python pickle:
@@ -38,6 +38,10 @@ the extension type UNISTR
 
 Python 3 pickles strings(unicode) to msg-pack str type and bytes to
 msg-pack byte type
+
+CHANGES TO Protocol 4
+Type OBJECT_NEW_CUSTOM is abandoned
+Type FAST_NEW is introduced and a slighly smaller footprint und loads faster
 """
 
 import sys
@@ -67,6 +71,9 @@ IF PY_MAJOR_VERSION > 2:
         dict import_mapping_3to2 = _compat_pickle.REVERSE_IMPORT_MAPPING
 ELSE:
     import copy_reg as copyreg
+
+cdef object REDUCE_PROTOCOL = 4
+cdef MAX_PROTOCOL_VERSION = 4
 
 
 cdef extern from "structmember.h":
@@ -102,8 +109,8 @@ cdef extern from "pickle.hpp":
 
     cdef enum EXT_TYPES:
         VERSION, LONG, REF, LIST, OBJECT, OBJECT_NEW, GLOBAL, SINGLETON,
-        OLD_STYLE, INIT_ARGS, END_OBJECT_ITEMS, BYTES, UNISTR, OBJECT_NEW_CUSTOM,
-        GLOBAL_OBJECT, COUNT_EXT_TYPES
+        OLD_STYLE, INIT_ARGS, END_OBJECT_ITEMS, BYTES, UNISTR,
+        OBJECT_NEW_CUSTOM, GLOBAL_OBJECT, FAST_NEW, COUNT_EXT_TYPES
 
 
 IF False:
@@ -135,8 +142,9 @@ cdef extern from "pack.hpp":
     cdef cppclass Packer:
         PyObject*  pickler
         write_t do_write
+        int protocol
 
-        Packer(object pickler, bool with_refs)
+        Packer(object pickler, int protocol, bool with_refs)
 
         bool save_ref(object o)
         void dump(object o)
@@ -145,6 +153,7 @@ cdef extern from "pack.hpp":
         uint32_t reset()
         void pack_version(uint8_t version) except +
         void pack_nil()
+        bool pack8(uint8_t value)
         int pack_int(long value)
         int pack_ext(uint8_t typecode, size_t l)
         int pack_bool(bool value)
@@ -196,7 +205,8 @@ cdef extern from "unpack.hpp":
         void stamp(uint32_t ref, object o)
         void change_stamp(uint32_t ref, object o)
         int read(char* data, size_t size)
-        int read32(uint32_t* value)
+        void read32(uint32_t* value)
+        void read8(uint8_t* value)
 
     PyObject* load_uint4(Unpacker *p, uint8_t code, size_t size)
     PyObject* load_int4(Unpacker *p, uint8_t code, size_t size)
@@ -291,7 +301,7 @@ cdef class _BufferContainer:
         return self
 
 
-cdef inline int read_buffer(object unpickler, void* buffer, size_t size) except -1:
+cdef int read_buffer(object unpickler, void* buffer, size_t size) except -1:
     (<_BufferContainer>(<Unpickler>unpickler).file).sreader.read(buffer, size)
 
 
@@ -409,7 +419,24 @@ cdef void save_global(Packer* p, object o):
         reraise()
 
 
-cdef inline void save_object_state(Packer* p, tuple state):
+cdef pack_state_array(Packer *p, tuple state):
+    cdef PyObject* tmp
+    tmp = PyTuple_GET_ITEM(state, 3)
+    if <object>tmp is not None:
+        for i in <object>tmp:
+            p.dump(i)
+
+
+cdef pack_state_dict(Packer *p, tuple state):
+    cdef PyObject* tmp
+    tmp = PyTuple_GET_ITEM(state, 4)
+    if <object>tmp is not None:
+        for k, v in <object>tmp:
+            p.dump(k)
+            p.dump(v)
+
+
+cdef void save_object_state(Packer* p, tuple state):
     cdef:
         size_t size
         PyObject* tmp
@@ -422,27 +449,21 @@ cdef inline void save_object_state(Packer* p, tuple state):
         p.pack_nil()
 
     if size > 3:
-        tmp = PyTuple_GET_ITEM(state, 3)
-        if <object>tmp is not None:
-            for i in <object>tmp:
-                p.dump(i)
-
-    p.pack_ext(END_OBJECT_ITEMS, 0)
+        pack_state_array(p, state)
+    p.pack_ext(END_OBJECT_ITEMS, 1)
 
     if size > 4:
-        tmp = PyTuple_GET_ITEM(state, 4)
-        if <object>tmp is not None:
-            for k, v in <object>tmp:
-                p.dump(k)
-                p.dump(v)
+        pack_state_dict(p, state)
+    p.pack_ext(END_OBJECT_ITEMS, 1)
 
-    p.pack_ext(END_OBJECT_ITEMS, 0)
+    if size > 5:
+        raise PicklingError(
+            "Cannot pickle object with more then 5 reduce items")
 
 
 cdef inline int _save_reduced(Packer* p, object o) except -1:
     if p.save_ref(o): return 0
-    state = o.__reduce_ex__((<Pickler>p.pickler).protocol)
-
+    state = o.__reduce_ex__(REDUCE_PROTOCOL)
     if isinstance(state, basestring):
         (<Pickler>p.pickler).pack_import2(SINGLETON, o.__module__, state)
         return 0
@@ -460,30 +481,76 @@ cdef void save_reduced(Packer* p, object o):
         reraise()
 
 
-cdef inline int _save_new_object(EXT_TYPES type_, Packer* p, object o) except -1:
+cdef inline int _save_new_object(Packer* p, o) except -1:
     if p.save_ref(o): return 0
-    state = o.__reduce_ex__((<Pickler>p.pickler).protocol)
+    state = o.__reduce_ex__(REDUCE_PROTOCOL)
     if isinstance(state, basestring):
         (<Pickler>p.pickler).pack_import2(SINGLETON, o.__module__, state)
         return 0
 
-    p.pack_ext(type_, 1)
+    return _save_new_object_finish(p, o, state)
+
+cdef inline int _save_new_object_finish(Packer* p, o, state) except -1:
+    p.pack_ext(OBJECT_NEW, 1)
     p.dump(<object>PyTuple_GET_ITEM(state, 1))
     save_object_state(p, state)
+    return 0
 
 
-cdef void save_new_object(Packer* p, object o):
+cdef inline void save_new_object(Packer* p, object o):
     try:
-        _save_new_object(OBJECT_NEW, p, o)
+        if p.protocol < 4:
+            _save_new_object(p, o)
+        else:
+            _fast_save(p, o)
     except:
         reraise()
 
 
-cdef void save_new_object_custom(Packer* p, object o):
-    try:
-        _save_new_object(OBJECT_NEW_CUSTOM, p, o)
-    except:
-        reraise()
+cdef inline int _fast_save(Packer* p, object o) except -1:
+    if p.save_ref(o): return 0
+    state = o.__reduce_ex__(REDUCE_PROTOCOL)
+    if isinstance(state, basestring):
+        (<Pickler>p.pickler).pack_import2(SINGLETON, o.__module__, state)
+        return 0
+
+    return _fast_save_finish(p, o, state)
+
+
+cdef inline int _fast_save_finish(Packer* p, o, state) except -1:
+    cdef:
+        size_t size
+        size_t i
+
+    size = PyTuple_GET_SIZE(state)
+    i = size - 1
+    while i > 1:
+        if <object>PyTuple_GET_ITEM(state, i) is None:
+            size -= 1
+            i -= 1
+        else:
+            break
+    p.pack_ext(FAST_NEW, size)
+    p.dump(<object>PyTuple_GET_ITEM(state, 1))
+    if size > 2:
+        p.dump(<object>PyTuple_GET_ITEM(state, 2))
+        if size > 3:
+            pack_state_array(p, state)
+            p.pack_ext(END_OBJECT_ITEMS, 1)
+            if size > 4:
+                pack_state_dict(p, state)
+                p.pack_ext(END_OBJECT_ITEMS, 1)
+                if size > 5:
+                    raise PicklingError(
+                        "Cannot pickle object with more then 5 reduce items")
+
+
+cdef int _save__newobj__(Packer* p, object o, state) except -1:
+    register_type(o, save_new_object)
+    if p.protocol < 4:
+        return _save_new_object_finish(p, o, state)
+    else:
+        return _fast_save_finish(p, o, state)
 
 
 cdef inline int _save_object(Packer* p, object o) except -1:
@@ -498,7 +565,7 @@ cdef inline int _save_object(Packer* p, object o) except -1:
     if reduce_func is NULL:
         do_reduce = o.__reduce_ex__
         try:
-            state = do_reduce((<Pickler>p.pickler).protocol)
+            state = do_reduce(REDUCE_PROTOCOL)
         except TypeError:
             # a meta class
             try:
@@ -516,17 +583,8 @@ cdef inline int _save_object(Packer* p, object o) except -1:
         (<Pickler>p.pickler).pack_import2(SINGLETON, o.__module__, state)
         return 0
 
-    if <str>((<object>PyTuple_GET_ITEM(state, 0)).__name__) == "__newobj__":
-        if hasattr(o, "__getstate__"):
-            p.pack_ext(OBJECT_NEW_CUSTOM, 1)
-            if next_save_func:
-                next_save_func = save_new_object_custom
-        else:
-            p.pack_ext(OBJECT_NEW, 1)
-            if next_save_func:
-                next_save_func = save_new_object
-
-        p.dump(<object>PyTuple_GET_ITEM(state, 1))
+    if ((<object>PyTuple_GET_ITEM(state, 0)).__name__) == "__newobj__":
+        return _save__newobj__(p, o, state)
     else:
         p.pack_ext(OBJECT, 1)
         p.dump(<object>PyTuple_GET_ITEM(state, 0))
@@ -625,19 +683,21 @@ cdef class Pickler:
         public dict dispatch_table
         public uint32_t last_refcount
 
-    def __init__(self, file=None, protocol=3, with_refs=True):
+    def __init__(
+            self, file=None, protocol=MAX_PROTOCOL_VERSION, with_refs=True):
         IF PY_MAJOR_VERSION < 3:
             self.protocol = 2
             self.pack_import_names = simple_pack
         ELSE:
-            if protocol < 0: protocol = 3
+            if protocol < 0: protocol = MAX_PROTOCOL_VERSION
+            protocol = min(protocol, MAX_PROTOCOL_VERSION)
             self.protocol = protocol
             if protocol == 2:
                 self.pack_import_names = mapped_pack
             else:
                 self.pack_import_names = simple_pack
 
-        self.packer = new Packer(self, with_refs)
+        self.packer = new Packer(self, protocol, with_refs)
         self.dispatch_table = dispatch_table
 
         if file is None:
@@ -702,43 +762,61 @@ cdef class Pickler:
 # Unpickler Functions
 # ----------------------------------
 
-cdef object _load_object(Unpacker *p, obj, uint8_t code):
-    cdef:
-        PyObject *set_state
-        dict obj_value
+cdef int _load_slot_state(obj, state) except -1:
+    cdef dict obj_value
 
-    state = p.load_object()
+    if PyTuple_Check(state) and PyTuple_GET_SIZE(state) == 2:
+        # an object with __slots__
+        obj_value = <dict>PyTuple_GET_ITEM(state, 1)
+        for k, v in obj_value.items():
+            setattr(obj, k, v)
+
+        # an object with __slots__ and __dict__
+        state = <object>PyTuple_GET_ITEM(state, 0)
+        if state is not None:
+            PyDict_Update(obj.__dict__, state)
+        return 1
+    return 0
+
+
+cdef int _load_state(obj, state) except -1:
+    if state is not None:
+        set_state = getattr(obj, "__setstate__", None)
+        if set_state is not None:
+            set_state(state)
+            return 0
+
+        if not _load_slot_state(obj, state):
+            PyDict_Update(obj.__dict__, state)
+    return 0
+
+
+cdef int _load_state_sequence(Unpacker *p, obj) except -1:
     item = p.load_object()
     if item is not _end_item:
+        append = obj.append
         while item is not _end_item:
-            obj.append(item)
+            append(item)
             item = p.load_object()
+    return 0
 
+
+cdef int _load_state_dict(Unpacker *p, obj) except -1:
     k = p.load_object()
-    while k is not _end_item:
-        v = p.load_object()
-        obj[k] = v
-        k = p.load_object()
+    if k is not _end_item:
+        setitem = obj.__setitem__
+        while k is not _end_item:
+            v = p.load_object()
+            setitem(k, v)
+            k = p.load_object()
+    return 0
 
-    if state is not None:
-        set_state = Object_GetAttrString(obj, "__setstate__")
-        if set_state is not NULL:
-            (<object>set_state)(state)
-            Py_CLEAR(set_state)
-        else:
-            PyErr_Clear()
 
-            if code != OBJECT_NEW_CUSTOM and PyTuple_Check(state)\
-               and PyTuple_GET_SIZE(state) == 2:
-                obj_value = <dict>PyTuple_GET_ITEM(state, 1)
-                for k, v in obj_value.items():
-                    setattr(obj, k, v)
-
-                state = <object>PyTuple_GET_ITEM(state, 0)
-
-            if state is not None:
-                PyDict_Update(obj.__dict__, state)
-
+cdef object _load_object(Unpacker *p, obj):
+    state = p.load_object()
+    _load_state_sequence(p, obj)
+    _load_state_dict(p, obj)
+    _load_state(obj, state)
     return obj
 
 
@@ -748,7 +826,7 @@ cdef object load_object(Unpacker *p, uint8_t code, size_t size):
     constructor_arg = p.load_object()
     obj = constructor(*constructor_arg)
     p.stamp(stamp, obj)
-    return _load_object(p, obj, code)
+    return _load_object(p, obj)
 
 
 cdef object load_object_new(Unpacker *p, uint8_t code, size_t size):
@@ -760,7 +838,26 @@ cdef object load_object_new(Unpacker *p, uint8_t code, size_t size):
     cls = cls_args[0]
     obj = GET_NEW(cls)(<PyTypeObject*>cls, cls_args[1:], NULL)
     p.stamp(stamp, obj)
-    return _load_object(p, obj, code)
+    return _load_object(p, obj)
+
+
+cdef object load_object_fast(Unpacker *p, uint8_t code, size_t size):
+    cdef:
+        uint32_t stamp = p.get_stamp()
+        tuple cls_args
+
+    cls_args = p.load_object()
+    cls = cls_args[0]
+    obj = GET_NEW(cls)(<PyTypeObject*>cls, cls_args[1:], NULL)
+    p.stamp(stamp, obj)
+    if size >= 3:
+        state = p.load_object()
+        if size >= 4:
+            _load_state_sequence(p, obj)
+            if size >= 5:
+                _load_state_dict(p, obj)
+        _load_state(obj, state)
+    return obj
 
 
 cdef object load_singleton(Unpacker *p, uint8_t code, size_t size):
@@ -871,6 +968,7 @@ _register_unpickle(<unpack_t>load_global, [GLOBAL], 0x100)
 _register_unpickle(<unpack_t>load_global_object, [GLOBAL_OBJECT], 0x100)
 _register_unpickle(<unpack_t>load_object, [OBJECT], 0x100)
 _register_unpickle(<unpack_t>load_object_new, [OBJECT_NEW, OBJECT_NEW_CUSTOM], 0x100)
+_register_unpickle(<unpack_t>load_object_fast, [FAST_NEW], 0x100)
 _register_unpickle(<unpack_t>load_singleton, [SINGLETON], 0x100)
 _register_unpickle(<unpack_t>load_oldstyle, [OLD_STYLE], 0x100)
 _register_unpickle(<unpack_t>load_initargs, [INIT_ARGS], 0x100)
@@ -1023,12 +1121,12 @@ cdef class Unpickler:
             self.last_refcount = self.unpacker.reset()
 
 
-cpdef dumps(obj, protocol=3, with_refs=True):
+cpdef dumps(obj, protocol=-1, with_refs=True):
     return Pickler(protocol=protocol, with_refs=with_refs)\
         .dump(obj).get_output_string()
 
 
-cpdef dump(obj, file, protocol=3):
+cpdef dump(obj, file, protocol=-1):
     Pickler(file, protocol=protocol).dump(obj)
 
 
@@ -1041,4 +1139,4 @@ cpdef loads(bytes obj):
     cdef Unpickler unpickler = Unpickler(obj)
     return unpickler.load()
 
-__version__ = "1.1.2"
+__version__ = "1.3.0"
