@@ -106,8 +106,10 @@ struct Unpacker {
   read_t do_read;
   UnrefMap refs;
   buffer_t read_buffer;
+  size_t min_string_size_for_ref;
 
-  Unpacker(PyObject *unpickler) : unpickler(unpickler) {
+  Unpacker(PyObject *unpickler):
+      unpickler(unpickler), min_string_size_for_ref(MIN_STRING_SIZE_FOR_REF) {
     reset();
   }
 
@@ -468,7 +470,7 @@ inline PyObject* _load_bytes(Unpacker* p, size_t size, int interned) {
       PyString_InternInPlace(&result);
 #endif
 
-    if (size > MIN_STRING_SIZE_FOR_REF)
+    if (size > p->min_string_size_for_ref)
       p->stamp(result);
   }
   catch(...) {
@@ -494,7 +496,7 @@ inline PyObject* _load_unicode(Unpacker* p, size_t size, int interned) {
       PyUnicode_InternInPlace(&result);
 #endif
 
-    if (PyUnicode_GET_LENGTH(result) > MIN_STRING_SIZE_FOR_REF)
+    if (PyUnicode_GET_LENGTH(result) > p->min_string_size_for_ref)
       p->stamp(result);
   }
   catch(...) {
@@ -556,7 +558,7 @@ inline PyObject* load_bytes(Unpacker* p, uint8_t code, size_t size) {
 
   try {
     p->read(PyBytes_AS_STRING(bin), size);
-    if (size > MIN_STRING_SIZE_FOR_REF) p->stamp(bin);
+    if (size > p->min_string_size_for_ref) p->stamp(bin);
   } catch(...) {
     Py_XDECREF(bin);
     throw;

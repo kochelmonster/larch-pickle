@@ -192,6 +192,7 @@ cdef extern from "unpack.hpp":
     cdef cppclass Unpacker:
         PyObject *unpickler
         read_t do_read
+        size_t min_string_size_for_ref
 
         Unpacker(object unpickler)
         uint32_t reset()
@@ -1070,6 +1071,8 @@ cdef class Unpickler:
                 self.default_find_class = mapped_find_class
             else:
                 self.default_find_class = simple_find_class
+            if protocol < 4:
+                self.unpacker.min_string_size_for_ref = 5;
 
     cdef object unpack_import(self, size_t size):
         cdef:
@@ -1139,4 +1142,4 @@ cpdef loads(bytes obj):
     cdef Unpickler unpickler = Unpickler(obj)
     return unpickler.load()
 
-__version__ = "1.3.0"
+__version__ = "1.3.1"
