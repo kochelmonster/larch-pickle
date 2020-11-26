@@ -1804,7 +1804,7 @@ static const char __pyx_k_main[] = "__main__";
 static const char __pyx_k_name[] = "__name__";
 static const char __pyx_k_read[] = "read";
 static const char __pyx_k_test[] = "__test__";
-static const char __pyx_k_1_3_0[] = "1.3.0";
+static const char __pyx_k_1_3_1[] = "1.3.1";
 static const char __pyx_k_class[] = "__class__";
 static const char __pyx_k_items[] = "items";
 static const char __pyx_k_range[] = "range";
@@ -1872,7 +1872,7 @@ static const char __pyx_k_Difference_to_python_pickle_no[] = "\n\nDifference to 
 static const char __pyx_k_Pickler___init___was_not_called[] = "Pickler.__init__() was not called by {}.__init__()";
 static const char __pyx_k_Cannot_pickle_object_with_more_t[] = "Cannot pickle object with more then 5 reduce items";
 static const char __pyx_k_Unpickler___init___was_not_calle[] = "Unpickler.__init__() was not called by {}.__init__()";
-static PyObject *__pyx_kp_u_1_3_0;
+static PyObject *__pyx_kp_u_1_3_1;
 static PyObject *__pyx_n_s_AttributeError;
 static PyObject *__pyx_n_s_BufferContainer;
 static PyObject *__pyx_n_s_BuiltinMethodType;
@@ -12937,7 +12937,7 @@ static PyObject *__pyx_f_5larch_6pickle_loads(PyObject *__pyx_v_obj, CYTHON_UNUS
  *     cdef Unpickler unpickler = Unpickler(obj)
  *     return unpickler.load()             # <<<<<<<<<<<<<<
  * 
- * __version__ = "1.3.0"
+ * __version__ = "1.3.1"
  */
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_unpickler), __pyx_n_s_load); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1143, __pyx_L1_error)
@@ -13847,7 +13847,7 @@ static struct PyModuleDef __pyx_moduledef = {
 #endif
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
-  {&__pyx_kp_u_1_3_0, __pyx_k_1_3_0, sizeof(__pyx_k_1_3_0), 0, 1, 0, 0},
+  {&__pyx_kp_u_1_3_1, __pyx_k_1_3_1, sizeof(__pyx_k_1_3_1), 0, 1, 0, 0},
   {&__pyx_n_s_AttributeError, __pyx_k_AttributeError, sizeof(__pyx_k_AttributeError), 0, 0, 1, 1},
   {&__pyx_n_s_BufferContainer, __pyx_k_BufferContainer, sizeof(__pyx_k_BufferContainer), 0, 0, 1, 1},
   {&__pyx_n_s_BuiltinMethodType, __pyx_k_BuiltinMethodType, sizeof(__pyx_k_BuiltinMethodType), 0, 0, 1, 1},
@@ -15825,9 +15825,9 @@ if (!__Pyx_RefNanny) {
   /* "larch/pickle.pyx":1145
  *     return unpickler.load()
  * 
- * __version__ = "1.3.0"             # <<<<<<<<<<<<<<
+ * __version__ = "1.3.1"             # <<<<<<<<<<<<<<
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_u_1_3_0) < 0) __PYX_ERR(0, 1145, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_version, __pyx_kp_u_1_3_1) < 0) __PYX_ERR(0, 1145, __pyx_L1_error)
 
   /* "larch/pickle.pyx":1
  * #cython: boundscheck=False, always_allow_keywords=False, language_level=3, profile=False             # <<<<<<<<<<<<<<
