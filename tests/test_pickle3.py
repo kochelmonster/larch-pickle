@@ -1128,6 +1128,7 @@ class PickleTests(
     def loads(self, buf):
         return self._loads(buf)
 
+
     module = pickle
     error = KeyError
 
@@ -1152,6 +1153,16 @@ class PicklerUnpicklerObjectTests(
         unittest.TestCase, AbstractPicklerUnpicklerObjectTests):
     pickler_class = pickle.Pickler
     unpickler_class = pickle.Unpickler
+
+
+class TestLarchBugs(unittest.TestCase):
+    def test_bug(self):
+        s = pickle.dumps(["four", "two", "four"])
+        unpickler = pickle.Unpickler()
+        r1 = unpickler.loads(s)  # all ok
+        unpickler.loads(b'\xd4\x00\x03\x01')  # protocol 3
+        r2 = unpickler.loads(s)  # switch back to 4
+        self.assertEqual(r1, r2)
 
 
 if __name__ == "__main__":

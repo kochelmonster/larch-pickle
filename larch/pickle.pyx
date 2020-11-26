@@ -824,8 +824,11 @@ cdef object _load_object(Unpacker *p, obj):
 cdef object load_object(Unpacker *p, uint8_t code, size_t size):
     cdef uint32_t stamp = p.get_stamp()
     constructor = p.load_object()
-    constructor_arg = p.load_object()
-    obj = constructor(*constructor_arg)
+    constructor_args = p.load_object()
+    try:
+        obj = constructor(*constructor_args)
+    except Exception as e:
+        raise UnpicklingError(e, constructor, constructor_args)
     p.stamp(stamp, obj)
     return _load_object(p, obj)
 
@@ -837,7 +840,11 @@ cdef object load_object_new(Unpacker *p, uint8_t code, size_t size):
 
     cls_args = p.load_object()
     cls = cls_args[0]
-    obj = GET_NEW(cls)(<PyTypeObject*>cls, cls_args[1:], NULL)
+    try:
+        obj = GET_NEW(cls)(<PyTypeObject*>cls, cls_args[1:], NULL)
+    except Exception as e:
+        raise UnpicklingError(e, cls, cls_args)
+
     p.stamp(stamp, obj)
     return _load_object(p, obj)
 
@@ -849,7 +856,11 @@ cdef object load_object_fast(Unpacker *p, uint8_t code, size_t size):
 
     cls_args = p.load_object()
     cls = cls_args[0]
-    obj = GET_NEW(cls)(<PyTypeObject*>cls, cls_args[1:], NULL)
+    try:
+        obj = GET_NEW(cls)(<PyTypeObject*>cls, cls_args[1:], NULL)
+    except Exception as e:
+        raise UnpicklingError(e, cls, cls_args)
+
     p.stamp(stamp, obj)
     if size >= 3:
         state = p.load_object()
@@ -1073,6 +1084,8 @@ cdef class Unpickler:
                 self.default_find_class = simple_find_class
             if protocol < 4:
                 self.unpacker.min_string_size_for_ref = 5;
+            else:
+                self.unpacker.min_string_size_for_ref = 3;
 
     cdef object unpack_import(self, size_t size):
         cdef:
@@ -1142,4 +1155,4 @@ cpdef loads(bytes obj):
     cdef Unpickler unpickler = Unpickler(obj)
     return unpickler.load()
 
-__version__ = "1.3.1"
+__version__ = "1.3.2"
