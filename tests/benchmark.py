@@ -110,6 +110,7 @@ def show(title, dump, load, count):
     print()
 
 
+@spickle.secure_unpickle
 class Item(object):
     def __init__(self, nr, data, time):
         self.nr = nr

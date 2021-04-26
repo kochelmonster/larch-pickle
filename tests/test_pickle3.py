@@ -5,12 +5,12 @@ import larch.pickle as pickle
 import sys
 import os
 import copyreg
+import platform
+import builtins
+import operator
+import collections
 from http.cookies import SimpleCookie
-
-from test.support import (
-    TestFailed, TESTFN, run_with_locale,
-    _2G, _4G, bigmemtest, set_memlimit
-    )
+from test.support import TestFailed, TESTFN, _2G, _4G, bigmemtest, set_memlimit
 
 from pickle import bytes_types
 
@@ -21,9 +21,12 @@ protocols = [3, 4]
 
 character_size = 4 if sys.maxunicode > 0xFFFF else 2
 
-import platform
+
 if platform.architecture()[0] == '64bit':
     set_memlimit("4G")
+
+
+secure_unpickle = pickle.secure_unpickle
 
 
 class UnseekableIO(io.BytesIO):
@@ -71,14 +74,20 @@ class ExtensionSaver:
         if pair is not None:
             copyreg.add_extension(pair[0], pair[1], code)
 
+
+@secure_unpickle
 class C:
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
 
+
+@secure_unpickle
 class D(C):
     def __init__(self, arg):
         pass
 
+
+@secure_unpickle
 class E(C):
     def __getinitargs__(self):
         return ()
@@ -91,10 +100,14 @@ D.__module__ = "__main__"
 __main__.E = E
 E.__module__ = "__main__"
 
+
+@secure_unpickle
 class myint(int):
     def __init__(self, x):
         self.str = str(x)
 
+
+@secure_unpickle
 class initarg(C):
 
     def __init__(self, a, b):
@@ -104,20 +117,28 @@ class initarg(C):
     def __getinitargs__(self):
         return self.a, self.b
 
+
+@secure_unpickle
 class metaclass(type):
     pass
 
+
+@secure_unpickle
 class use_metaclass(object, metaclass=metaclass):
     pass
 
+
+@secure_unpickle
 class pickling_metaclass(type):
     def __eq__(self, other):
-        return (type(self) == type(other) and
-                self.reduce_args == other.reduce_args)
+        return (type(self) == type(other)
+                and self.reduce_args == other.reduce_args)
 
     def __reduce__(self):
         return (create_dynamic_class, self.reduce_args)
 
+
+@secure_unpickle
 def create_dynamic_class(name, bases):
     result = pickling_metaclass(name, bases, dict())
     result.reduce_args = (name, bases)
@@ -146,7 +167,7 @@ def create_data():
     x.extend([1, -1,
               uint1max, -uint1max, -uint1max-1,
               uint2max, -uint2max, -uint2max-1,
-               int4max,  -int4max,  -int4max-1])
+              int4max,  -int4max,  -int4max-1])
     y = ('abc', 'abc', c, c)
     x.append(y)
     x.append(y)
@@ -158,6 +179,7 @@ with open(os.path.join(os.path.dirname(__file__), "test.data"), "rb") as f:
     big_data = opickle.load(f, encoding="utf8")
 
 
+@secure_unpickle
 class Verb(object):
     __slots__ = ("obj", "method", "kwargs")
 
@@ -167,6 +189,7 @@ class Verb(object):
         self.kwargs = kwargs
 
 
+@secure_unpickle
 class _Neg(object):
     __slots__ = ("value",)
 
@@ -232,26 +255,39 @@ class AbstractAttackPickleTests(object):
     # bytes, unicode and long are robust because is PyBytes_FromStringAndSize
 
     def test_attack_list(self):
-        #test dos attack against list
+        # test dos attack against list
         s = bytes([0xc9, 0xFF, 0xFF, 0xFF, 0xFF, 0])
         self.assertRaises(EOFError, self.loads, s)
 
-        #test a save operation
+        # test a save operation
         x = range(0x10000)
         s = self.dumps(x)
         y = self.loads(s)
         self.assertEqual(x, y)
 
     def test_attack_tuple(self):
-        #test dos attack against tuple
+        # test dos attack against tuple
         s = bytes([0xdd, 0xFF, 0xFF, 0xFF, 0xFF])
         self.assertRaises(EOFError, self.loads, s)
 
-        #test a save operation
+        # test a save operation
         x = tuple(range(0x10000))
         s = self.dumps(x)
         y = self.loads(s)
         self.assertEqual(x, y)
+
+    def test_pickle_security(self):
+        unsecure = """breakpoint compile delattr eval exec exit input locals
+        globals memoryview open print quit setattr staticmethod classmethod
+        super vars"""
+        for s in unsecure.split():
+            x = self.dumps(getattr(builtins, s))
+            self.assertRaises(pickle.SecurityError, self.loads, x)
+
+        unsecure = "methodcaller delitem setitem"
+        for s in unsecure.split():
+            x = self.dumps(getattr(operator, s))
+            self.assertRaises(pickle.SecurityError, self.loads, x)
 
 
 class AbstractPickleTests(object):
@@ -261,6 +297,13 @@ class AbstractPickleTests(object):
 
     def setUp(self):
         pass
+
+    def test_modules(self):
+        objects = (len, operator.add, collections.OrderedDict())
+        for o in objects:
+            x = self.dumps(o)
+            y = self.loads(x)
+            self.assertEqual(o, y)
 
     def test_misc(self):
         # test various datatypes not tested by testdata
@@ -743,10 +786,13 @@ class AbstractPickleTests(object):
     def test_refcount_bug(self):
         # was only reproducable with larch.reactive
         try:
-            from larch.reactive import SELF
+            from larch.reactive import SELF, Proxy, ProxyExpression, _ExpressionOperandRoot
         except ImportError:
             return
 
+        secure_unpickle(Proxy)
+        secure_unpickle(ProxyExpression)
+        secure_unpickle(_ExpressionOperandRoot)
         t = (" " + SELF._docid, SELF.firstname + " ")
         x = self.dumps(t, proto=3)
         y = self.loads(x)
@@ -835,7 +881,7 @@ class BigmemPickleTests(object):
 
 
 # Test classes for reduce_ex
-
+@secure_unpickle
 class REX_one(object):
     _reduce_called = 0
 
@@ -845,6 +891,7 @@ class REX_one(object):
     # No __reduce_ex__ here, but inheriting it from object
 
 
+@secure_unpickle
 class REX_two(object):
     _proto = None
 
@@ -854,6 +901,7 @@ class REX_two(object):
     # No __reduce__ here, but inheriting it from object
 
 
+@secure_unpickle
 class REX_three(object):
     _proto = None
 
@@ -865,6 +913,7 @@ class REX_three(object):
         raise TestFailed("This __reduce__ shouldn't be called")
 
 
+@secure_unpickle
 class REX_four(object):
     _proto = None
 
@@ -874,6 +923,7 @@ class REX_four(object):
     # Calling base class method should succeed
 
 
+@secure_unpickle
 class REX_five(object):
     _reduce_called = 0
 
@@ -883,6 +933,7 @@ class REX_five(object):
     # This one used to fail with infinite recursion
 
 
+@secure_unpickle
 class REX_six(object):
     """This class is used to check the 4th argument (list iterator) of
     the reduce protocol.
@@ -901,6 +952,7 @@ class REX_six(object):
         return type(self), (), None, iter(self.items), None
 
 
+@secure_unpickle
 class REX_seven(object):
     """This class is used to check the 5th argument (dict iterator) of
     the reduce protocol.
@@ -921,34 +973,42 @@ class REX_seven(object):
 
 # Test classes for newobj
 
+@secure_unpickle
 class MyInt(int):
     sample = 1
 
 
+@secure_unpickle
 class MyFloat(float):
     sample = 1.0
 
 
+@secure_unpickle
 class MyComplex(complex):
     sample = 1.0 + 0.0j
 
 
+@secure_unpickle
 class MyStr(str):
     sample = "hello"
 
 
+@secure_unpickle
 class MyUnicode(str):
     sample = "hello \u1234"
 
 
+@secure_unpickle
 class MyTuple(tuple):
     sample = (1, 2, 3)
 
 
+@secure_unpickle
 class MyList(list):
     sample = [1, 2, 3]
 
 
+@secure_unpickle
 class MyDict(dict):
     sample = {"a": 1, "b": 2}
 
@@ -959,16 +1019,19 @@ myclasses = [MyInt, MyFloat,
              MyTuple, MyList, MyDict]
 
 
+@secure_unpickle
 class SlotList(MyList):
     __slots__ = ["foo"]
 
 
+@secure_unpickle
 class SimpleNewObj(object):
     def __init__(self, a, b, c):
         # raise an error, to make sure this isn't called
         raise TypeError("SimpleNewObj.__init__() didn't expect to get called")
 
 
+@secure_unpickle
 class BadGetattr:
     def __getattr__(self, key):
         self.foo
@@ -1111,7 +1174,7 @@ class PickleTests(
     def setUp(self):
         super(PickleTests, self).setUp()
         self._pickler = pickle.Pickler()
-        self._unpickler = pickle.Unpickler()
+        self._unpickler = pickle.Unpickler(secure=True)
         self._dumps = self._pickler.dumps
         self._loads = self._unpickler.loads
 
@@ -1127,7 +1190,6 @@ class PickleTests(
 
     def loads(self, buf):
         return self._loads(buf)
-
 
     module = pickle
     error = KeyError

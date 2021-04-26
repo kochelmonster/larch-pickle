@@ -127,6 +127,7 @@ struct Packer {
   write_t do_write;
   int protocol;
   BaseRefHandler *refhandler;
+  size_t min_string_size_for_ref;
 
   void set_refs(bool with_refs) {
     delete refhandler;
@@ -137,7 +138,8 @@ struct Packer {
   }
 
   Packer(PyObject* pickler, int protocol, bool with_refs)
-    : pickler(pickler), protocol(protocol), refhandler(NULL) {
+    : pickler(pickler), protocol(protocol), refhandler(NULL),
+      min_string_size_for_ref(MIN_STRING_SIZE_FOR_REF) {
     set_refs(with_refs);
   }
 
@@ -532,7 +534,7 @@ inline void  save_dict(Packer* p, PyObject* o) {
 
 inline void save_bytes(Packer* p, PyObject* o) {
   Py_ssize_t size = PyBytes_GET_SIZE(o);
-  if (size > MIN_STRING_SIZE_FOR_REF && p->save_ref(o)) return;
+  if (size > p->min_string_size_for_ref && p->save_ref(o)) return;
   p->pack_ext(BYTES, size);
   p->write(PyBytes_AS_STRING(o), size);
 }
@@ -544,7 +546,7 @@ inline void save_str3(Packer* p, PyObject* o) {
   Py_ssize_t size = PyUnicode_GET_LENGTH(o);
   PyObject *encoded = NULL;
 
-  if (size > MIN_STRING_SIZE_FOR_REF && p->save_ref(o)) return;
+  if (size > p->min_string_size_for_ref && p->save_ref(o)) return;
 
   const char* buffer = PyUnicode_AsUTF8AndSize(o, &size);
   if (!buffer) {
@@ -578,7 +580,7 @@ inline void save_str3(Packer* p, PyObject* o) {
 
 inline void save_str2(Packer* p, PyObject* o) {
   Py_ssize_t size = PyBytes_GET_SIZE(o);
-  if (size > MIN_STRING_SIZE_FOR_REF && p->save_ref(o)) return;
+  if (size > p->min_string_size_for_ref && p->save_ref(o)) return;
 
   if (PyString_CHECK_INTERNED(o))
     p->pack_bin(size);
@@ -591,7 +593,7 @@ inline void save_str2(Packer* p, PyObject* o) {
 
 inline void save_unicode(Packer* p, PyObject* o) {
   Py_ssize_t size = PyUnicode_GET_LENGTH(o);
-  if (size > MIN_STRING_SIZE_FOR_REF && p->save_ref(o)) return;
+  if (size > p->min_string_size_for_ref && p->save_ref(o)) return;
 
   PyObject *encoded = PyUnicode_AsUTF8String(o);
   if (!encoded)

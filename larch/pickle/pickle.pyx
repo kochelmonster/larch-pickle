@@ -43,10 +43,12 @@ CHANGES TO Protocol 4
 Type OBJECT_NEW_CUSTOM is abandoned
 Type FAST_NEW is introduced and a slighly smaller footprint und loads faster
 """
-
 import sys
 import types
 import cython
+import builtins
+import operator
+import logging
 from libc.string cimport memcpy
 from libcpp cimport bool
 from cpython.bytes cimport (
@@ -58,6 +60,13 @@ from cpython.unicode cimport (
     PyUnicode_CheckExact, PyUnicode_FromObject, PyUnicode_Decode)
 from cpython.ref cimport Py_DECREF, Py_INCREF, Py_CLEAR, PyTypeObject
 from cpython.exc cimport PyErr_Clear, PyErr_SetString, PyErr_Restore
+from . import register as pickle_register
+
+
+cdef set secure_objects = pickle_register.secure_objects
+cdef set secure_modules = pickle_register.secure_modules
+
+logger = logging.getLogger("larch.pickle")
 
 
 IF PY_MAJOR_VERSION > 2:
@@ -113,12 +122,12 @@ cdef extern from "pickle.hpp":
         OBJECT_NEW_CUSTOM, GLOBAL_OBJECT, FAST_NEW, COUNT_EXT_TYPES
 
 
-IF False:
+IF True:
     cdef show_debug(char* msg, object o, long v):
         if <PyObject*>o is NULL:
-            print(msg, v, "NULL")
+            print(msg, hex(v), "NULL")
         else:
-            print(msg, v, repr(o), hex(<size_t><PyObject*>o), (<PyObject*>o).ob_refcnt)
+            print(msg, hex(v), repr(o), hex(<size_t><PyObject*>o), (<PyObject*>o).ob_refcnt)
 
     debug = <debug_t>show_debug
 
@@ -143,6 +152,7 @@ cdef extern from "pack.hpp":
         PyObject*  pickler
         write_t do_write
         int protocol
+        size_t min_string_size_for_ref;
 
         Packer(object pickler, int protocol, bool with_refs)
 
@@ -352,13 +362,24 @@ cdef int read_external(object unpickler, void* data, size_t size) except -1:
     cdef ExternFileLike ef = <ExternFileLike>(<Unpickler>unpickler).file
     return ef.read(ef.file, data, size)
 
+
+@pickle_register.secure_unpickle
 class PickleError(Exception):
     pass
 
+
+@pickle_register.secure_unpickle
 class PicklingError(PickleError):
     pass
 
+
+@pickle_register.secure_unpickle
 class UnpicklingError(PickleError):
+    pass
+
+
+@pickle_register.secure_unpickle
+class SecurityError(UnpicklingError):
     pass
 
 
@@ -700,6 +721,10 @@ cdef class Pickler:
 
         self.packer = new Packer(self, protocol, with_refs)
         self.dispatch_table = dispatch_table
+        if protocol < 4:
+            self.packer.min_string_size_for_ref = 5;
+        else:
+            self.packer.min_string_size_for_ref = 3;
 
         if file is None:
             self.file = OutputBuffer()
@@ -1051,9 +1076,12 @@ cdef class Unpickler:
         find_class_t call_find_class
         default_find_class_t default_find_class
         public uint32_t last_refcount
+        public bool secure
 
-    def __init__(self, file=b""):
+    def __init__(self, file=b"", bool secure=False):
         self.unpacker = new Unpacker(self)
+        self.secure = secure
+
         # this is complicated but faster than ordinary subclassing
         if isinstance(self.find_class, types.BuiltinMethodType):
             self.call_find_class = call_default_find_class
@@ -1072,6 +1100,7 @@ cdef class Unpickler:
         else:
             self.file = _FileLike(file)
             self.unpacker.do_read = read_file
+
 
     def __dealloc__(self):
         del self.unpacker
@@ -1110,7 +1139,11 @@ cdef class Unpickler:
 
         module = self.unpacker.load_object()
         name = self.unpacker.load_object()
-        return self.call_find_class(self, module, name)
+        imported = self.call_find_class(self, module, name)
+        if self.secure:
+            self.verify_object(module, name, imported)
+
+        return imported
 
     cdef int check_init(self) except -1:
         if self.file is None:
@@ -1136,6 +1169,30 @@ cdef class Unpickler:
         finally:
             self.last_refcount = self.unpacker.reset()
 
+    cpdef verify_object(self, module, name, obj):
+        if (module not in secure_modules and obj not in secure_objects
+                and PyDict_GetItem(extension_registry, (module, name)) is NULL):
+
+            if getattr(obj, "__pickle_secure__", False):
+                try:
+                    secure_objects.add(obj)
+                except TypeError:
+                    pass
+                return
+
+            try:
+                add_module = getattr(pickle_register, "add_"+module.replace(".", "_"))
+            except AttributeError:
+                pass
+            else:
+                add_module()
+                if obj in secure_objects:
+                    return
+
+            logger.error("SecurityError %r %r", obj, module)
+            print("SecurityError", obj, module)
+            raise SecurityError("object not save for loading", obj, module)
+
 
 cpdef dumps(obj, protocol=-1, with_refs=True):
     return Pickler(protocol=protocol, with_refs=with_refs)\
@@ -1146,13 +1203,11 @@ cpdef dump(obj, file, protocol=-1):
     Pickler(file, protocol=protocol).dump(obj)
 
 
-cpdef load(file):
-    cdef Unpickler unpickler = Unpickler(file)
+cpdef load(file, secure=False):
+    cdef Unpickler unpickler = Unpickler(file, secure)
     return unpickler.load()
 
 
-cpdef loads(bytes obj):
-    cdef Unpickler unpickler = Unpickler(obj)
+cpdef loads(bytes obj, secure=False):
+    cdef Unpickler unpickler = Unpickler(obj, secure=True)
     return unpickler.load()
-
-__version__ = "1.3.2"

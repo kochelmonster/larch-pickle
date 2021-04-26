@@ -1,5 +1,5 @@
-larch.pickle - A faster python pickle replacement
-=================================================
+larch.pickle - A faster and secure python pickle replacement
+============================================================
 
 This module can be used as transparent replacement for pickle.
 
@@ -22,6 +22,17 @@ the standard include path install it with: ::
 
   python build_ext -I /path/to/boost install
 
+
+Security
+--------
+
+Version 1.4.0 introduced a secure parameter in Unpickler.
+With `secure=True` the Unpickler loads only objects that, are registered
+as secure. To register secure objects you can
+
+- use the decorator `secure_unpickle`
+- set the attribute `__pickle_secure__ = True`
+- add a module name to `secure_modules`
 
 
 Speed compared to some other pickler packages

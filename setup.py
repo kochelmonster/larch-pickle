@@ -17,7 +17,7 @@ compile_debug = os.environ.get("LARCH_INSTALL_FOR_TEST")
 
 
 class LarchExtension(Extension):
-    dbase = os.path.join("larch")
+    dbase = os.path.join("larch", "pickle")
 
     def __init__(self):
         Extension.__init__(self, self.name, [], cython_c_in_temp=True)
@@ -69,8 +69,7 @@ class LarchExtension(Extension):
         if compile_debug:
             CFLAGS = {"win32": ["/Zi"]}
             LFLAGS = {"win32": ["/DEBUG"]}
-            self.extra_compile_args.extend(
-                CFLAGS.get(self.platform, ["-g"]))
+            self.extra_compile_args.extend(CFLAGS.get(self.platform, ["-g"]))
             self.extra_link_args.extend(LFLAGS.get(self.platform, []))
             self.define_macros.extend([("DEBUG", None)])
 
@@ -85,7 +84,7 @@ class LarchExtension(Extension):
 
 
 class Pickle(LarchExtension):
-    name = "larch.pickle"
+    name = "larch.pickle.pickle"
 
     def make(self):
         boost_dir = os.environ.get("BOOST_DIR")
@@ -132,7 +131,7 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 
 setup(
     name="larch-pickle",
-    version="1.3.2",
+    version="1.4.0",
     packages=["larch"],
 
     # metadata for upload to PyPI
