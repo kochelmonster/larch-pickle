@@ -1190,7 +1190,6 @@ cdef class Unpickler:
                     return
 
             logger.error("SecurityError %r %r", obj, module)
-            print("SecurityError", obj, module)
             raise SecurityError("object not save for loading", obj, module)
 
 
@@ -1204,10 +1203,10 @@ cpdef dump(obj, file, protocol=-1):
 
 
 cpdef load(file, secure=False):
-    cdef Unpickler unpickler = Unpickler(file, secure)
+    cdef Unpickler unpickler = Unpickler(file, secure=secure)
     return unpickler.load()
 
 
 cpdef loads(bytes obj, secure=False):
-    cdef Unpickler unpickler = Unpickler(obj, secure=True)
+    cdef Unpickler unpickler = Unpickler(obj, secure=secure)
     return unpickler.load()

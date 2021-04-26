@@ -7,7 +7,7 @@ secure_modules = {"time", "uuid", "string", "re",
                   "heapq", "bisect", "array", "weakref", "types", "copy", "reprlib", "enum",
                   "graphlib", "numbers", "math", "cmath", "decimal", "fractions", "random",
                   "statistics", "errno", "html", "html.entities", "http.cookies", "Cookie",
-                  "http.cookiejar", "ipaddress", 
+                  "http.cookiejar", "ipaddress",
                   "larch.reactive.proxy", "larch.reactive.rcollections"}
 
 
