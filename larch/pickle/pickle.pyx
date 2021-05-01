@@ -1189,7 +1189,7 @@ cdef class Unpickler:
                 if obj in secure_objects:
                     return
 
-            logger.error("SecurityError %r %r", obj, module)
+            logger.error("SecurityError %r %r", obj, module, stack_info=True)
             raise SecurityError("object not save for loading", obj, module)
 
 

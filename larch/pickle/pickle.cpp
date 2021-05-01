@@ -1902,6 +1902,7 @@ static const char __pyx_k_reduce_ex[] = "__reduce_ex__";
 static const char __pyx_k_with_refs[] = "with_refs";
 static const char __pyx_k_find_class[] = "find_class";
 static const char __pyx_k_pyx_vtable[] = "__pyx_vtable__";
+static const char __pyx_k_stack_info[] = "stack_info";
 static const char __pyx_k_PickleError[] = "PickleError";
 static const char __pyx_k_NAME_MAPPING[] = "NAME_MAPPING";
 static const char __pyx_k_OutputBuffer[] = "OutputBuffer";
@@ -2040,6 +2041,7 @@ static PyObject *__pyx_n_s_secure_unpickle;
 static PyObject *__pyx_n_s_setitem;
 static PyObject *__pyx_n_u_setstate;
 static PyObject *__pyx_n_s_split;
+static PyObject *__pyx_n_s_stack_info;
 static PyObject *__pyx_n_s_sys;
 static PyObject *__pyx_n_s_test;
 static PyObject *__pyx_n_s_types;
@@ -13619,7 +13621,7 @@ static PyObject *__pyx_f_5larch_6pickle_6pickle_9Unpickler_verify_object(CYTHON_
  *                 if obj in secure_objects:
  *                     return             # <<<<<<<<<<<<<<
  * 
- *             logger.error("SecurityError %r %r", obj, module)
+ *             logger.error("SecurityError %r %r", obj, module, stack_info=True)
  */
           __Pyx_XDECREF(__pyx_r);
           __pyx_r = Py_None; __Pyx_INCREF(Py_None);
@@ -13689,81 +13691,52 @@ static PyObject *__pyx_f_5larch_6pickle_6pickle_9Unpickler_verify_object(CYTHON_
     /* "larch/pickle/pickle.pyx":1192
  *                     return
  * 
- *             logger.error("SecurityError %r %r", obj, module)             # <<<<<<<<<<<<<<
+ *             logger.error("SecurityError %r %r", obj, module, stack_info=True)             # <<<<<<<<<<<<<<
  *             raise SecurityError("object not save for loading", obj, module)
  * 
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_logger); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1192, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_logger); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1192, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_error); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1192, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_error); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1192, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = NULL;
-    __pyx_t_5 = 0;
-    if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
-      __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_2);
-      if (likely(__pyx_t_1)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-        __Pyx_INCREF(__pyx_t_1);
-        __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_2, function);
-        __pyx_t_5 = 1;
-      }
-    }
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_2)) {
-      PyObject *__pyx_temp[4] = {__pyx_t_1, __pyx_kp_u_SecurityError_r_r, __pyx_v_obj, __pyx_v_module};
-      __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 3+__pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1192, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __Pyx_GOTREF(__pyx_t_3);
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
-      PyObject *__pyx_temp[4] = {__pyx_t_1, __pyx_kp_u_SecurityError_r_r, __pyx_v_obj, __pyx_v_module};
-      __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 3+__pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1192, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __Pyx_GOTREF(__pyx_t_3);
-    } else
-    #endif
-    {
-      __pyx_t_6 = PyTuple_New(3+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1192, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      if (__pyx_t_1) {
-        __Pyx_GIVEREF(__pyx_t_1); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_1); __pyx_t_1 = NULL;
-      }
-      __Pyx_INCREF(__pyx_kp_u_SecurityError_r_r);
-      __Pyx_GIVEREF(__pyx_kp_u_SecurityError_r_r);
-      PyTuple_SET_ITEM(__pyx_t_6, 0+__pyx_t_5, __pyx_kp_u_SecurityError_r_r);
-      __Pyx_INCREF(__pyx_v_obj);
-      __Pyx_GIVEREF(__pyx_v_obj);
-      PyTuple_SET_ITEM(__pyx_t_6, 1+__pyx_t_5, __pyx_v_obj);
-      __Pyx_INCREF(__pyx_v_module);
-      __Pyx_GIVEREF(__pyx_v_module);
-      PyTuple_SET_ITEM(__pyx_t_6, 2+__pyx_t_5, __pyx_v_module);
-      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_6, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1192, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    }
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_t_3 = PyTuple_New(3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1192, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_INCREF(__pyx_kp_u_SecurityError_r_r);
+    __Pyx_GIVEREF(__pyx_kp_u_SecurityError_r_r);
+    PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_kp_u_SecurityError_r_r);
+    __Pyx_INCREF(__pyx_v_obj);
+    __Pyx_GIVEREF(__pyx_v_obj);
+    PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_v_obj);
+    __Pyx_INCREF(__pyx_v_module);
+    __Pyx_GIVEREF(__pyx_v_module);
+    PyTuple_SET_ITEM(__pyx_t_3, 2, __pyx_v_module);
+    __pyx_t_2 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1192, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_stack_info, Py_True) < 0) __PYX_ERR(0, 1192, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1192, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
     /* "larch/pickle/pickle.pyx":1193
  * 
- *             logger.error("SecurityError %r %r", obj, module)
+ *             logger.error("SecurityError %r %r", obj, module, stack_info=True)
  *             raise SecurityError("object not save for loading", obj, module)             # <<<<<<<<<<<<<<
  * 
  * 
  */
     __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_SecurityError); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1193, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_6 = NULL;
+    __pyx_t_3 = NULL;
     __pyx_t_5 = 0;
     if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
-      __pyx_t_6 = PyMethod_GET_SELF(__pyx_t_2);
-      if (likely(__pyx_t_6)) {
+      __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
+      if (likely(__pyx_t_3)) {
         PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-        __Pyx_INCREF(__pyx_t_6);
+        __Pyx_INCREF(__pyx_t_3);
         __Pyx_INCREF(function);
         __Pyx_DECREF_SET(__pyx_t_2, function);
         __pyx_t_5 = 1;
@@ -13771,25 +13744,25 @@ static PyObject *__pyx_f_5larch_6pickle_6pickle_9Unpickler_verify_object(CYTHON_
     }
     #if CYTHON_FAST_PYCALL
     if (PyFunction_Check(__pyx_t_2)) {
-      PyObject *__pyx_temp[4] = {__pyx_t_6, __pyx_kp_u_object_not_save_for_loading, __pyx_v_obj, __pyx_v_module};
-      __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 3+__pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1193, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __Pyx_GOTREF(__pyx_t_3);
+      PyObject *__pyx_temp[4] = {__pyx_t_3, __pyx_kp_u_object_not_save_for_loading, __pyx_v_obj, __pyx_v_module};
+      __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 3+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1193, __pyx_L1_error)
+      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __Pyx_GOTREF(__pyx_t_6);
     } else
     #endif
     #if CYTHON_FAST_PYCCALL
     if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
-      PyObject *__pyx_temp[4] = {__pyx_t_6, __pyx_kp_u_object_not_save_for_loading, __pyx_v_obj, __pyx_v_module};
-      __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 3+__pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1193, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __Pyx_GOTREF(__pyx_t_3);
+      PyObject *__pyx_temp[4] = {__pyx_t_3, __pyx_kp_u_object_not_save_for_loading, __pyx_v_obj, __pyx_v_module};
+      __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_5, 3+__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1193, __pyx_L1_error)
+      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __Pyx_GOTREF(__pyx_t_6);
     } else
     #endif
     {
       __pyx_t_1 = PyTuple_New(3+__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1193, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      if (__pyx_t_6) {
-        __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_6); __pyx_t_6 = NULL;
+      if (__pyx_t_3) {
+        __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3); __pyx_t_3 = NULL;
       }
       __Pyx_INCREF(__pyx_kp_u_object_not_save_for_loading);
       __Pyx_GIVEREF(__pyx_kp_u_object_not_save_for_loading);
@@ -13800,13 +13773,13 @@ static PyObject *__pyx_f_5larch_6pickle_6pickle_9Unpickler_verify_object(CYTHON_
       __Pyx_INCREF(__pyx_v_module);
       __Pyx_GIVEREF(__pyx_v_module);
       PyTuple_SET_ITEM(__pyx_t_1, 2+__pyx_t_5, __pyx_v_module);
-      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1193, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 1193, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_6);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     }
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_Raise(__pyx_t_3, 0, 0, 0);
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_Raise(__pyx_t_6, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __PYX_ERR(0, 1193, __pyx_L1_error)
 
     /* "larch/pickle/pickle.pyx":1173
@@ -15877,6 +15850,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_setitem, __pyx_k_setitem, sizeof(__pyx_k_setitem), 0, 0, 1, 1},
   {&__pyx_n_u_setstate, __pyx_k_setstate, sizeof(__pyx_k_setstate), 0, 1, 0, 1},
   {&__pyx_n_s_split, __pyx_k_split, sizeof(__pyx_k_split), 0, 0, 1, 1},
+  {&__pyx_n_s_stack_info, __pyx_k_stack_info, sizeof(__pyx_k_stack_info), 0, 0, 1, 1},
   {&__pyx_n_s_sys, __pyx_k_sys, sizeof(__pyx_k_sys), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
   {&__pyx_n_s_types, __pyx_k_types, sizeof(__pyx_k_types), 0, 0, 1, 1},
