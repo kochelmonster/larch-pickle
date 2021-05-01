@@ -55,3 +55,9 @@ def add__operator():
 def add_os():
     import os
     secure_objects.update([os.stat_result, os.statvfs_result])
+
+
+def add_extension_by_hash(module, name):
+    from hashlib import md5
+    code = int(md5((module+":"+name).encode("ascii")).hexdigest(), 16)
+    copyreg.add_extension(module, name, code & 0x7FFFFFFF)
