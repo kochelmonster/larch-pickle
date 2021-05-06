@@ -1,7 +1,7 @@
 import sys
 import os.path
 import os
-from setuptools import setup
+from setuptools import setup, find_packages
 from contextlib import contextmanager
 try:
     from Cython.Distutils import build_ext, Extension
@@ -131,8 +131,8 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 
 setup(
     name="larch-pickle",
-    version="1.4.1",
-    packages=["larch"],
+    version="1.4.2",
+    packages=find_packages(),
 
     # metadata for upload to PyPI
     author='Michael Reithinger',
