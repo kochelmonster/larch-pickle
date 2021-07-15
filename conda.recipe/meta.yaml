@@ -7,44 +7,19 @@ package:
 source:
   path: ..
 
-build_windows: &bwindows
-  script: |
-    rmdir /Q /S dist
-    if errorlevel 1 exit 1
-
-    rmdir /Q /S build
-    if errorlevel 1 exit 1
-
-    "{{ PYTHON }}" setup.py bdist_egg --exclude-source-files
-    if errorlevel 1 exit 1
-
-    for /r %%i in (dist\*.egg) do "{{ PYTHON }}" -m easy_install --no-deps %%i
-    if errorlevel 1 exit 1
-
-    for /R %%f in ($SP_DIR\*) do del %%f
-
-build_unix: &bunix
-  script: |
-    rm -rf build
-    rm -rf dist
-    {{ PYTHON }} setup.py bdist_egg --exclude-source-files
-    {{ PYTHON }} -m easy_install --no-deps dist/*.egg
-
 build:
   number: 0
-  <<: *bwindows   # [win]
-  <<: *bunix      # [not win]
-
+  script: {{ PYTHON }} -m pip install --no-deps --ignore-installed .
 
 requirements:
   host:
     - python
     - cython
+    - pip
 
   build:
     - {{ compiler('cxx') }}
     - boost-cpp
-    - pip
 
 test:
   requires:
