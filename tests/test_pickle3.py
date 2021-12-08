@@ -786,12 +786,12 @@ class AbstractPickleTests(object):
     def test_refcount_bug(self):
         # was only reproducable with larch.reactive
         try:
-            from larch.reactive import SELF, Proxy, ProxyExpression, _ExpressionOperandRoot
+            from larch.reactive import SELF, Pointer, PointerExpression, _ExpressionOperandRoot
         except ImportError:
             return
 
-        secure_unpickle(Proxy)
-        secure_unpickle(ProxyExpression)
+        secure_unpickle(Pointer)
+        secure_unpickle(PointerExpression)
         secure_unpickle(_ExpressionOperandRoot)
         t = (" " + SELF._docid, SELF.firstname + " ")
         x = self.dumps(t, proto=3)
