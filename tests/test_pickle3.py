@@ -10,7 +10,12 @@ import builtins
 import operator
 import collections
 from http.cookies import SimpleCookie
-from test.support import TestFailed, TESTFN, _2G, _4G, bigmemtest, set_memlimit
+from test.support import TestFailed, _2G, _4G, bigmemtest, set_memlimit
+try:
+    from test.support.os_helper import TESTFN
+except ImportError:
+    from test.support import TESTFN
+
 
 from pickle import bytes_types
 
