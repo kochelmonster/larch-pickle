@@ -42,8 +42,8 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: window-wheel
-        path: dist\*.whl
+        path: dir $env:RUNNER_WORKSPACE
     - uses: actions/upload-artifact@v2
       with:
         name: window-conda-package
-        path: $env:CONDA\conda-bld\win-64\*.whl
+        path: $env:CONDA\conda-bld\win-64\*.bz2
