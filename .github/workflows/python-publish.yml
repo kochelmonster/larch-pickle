@@ -27,9 +27,12 @@ jobs:
     - name: Install dependencies
       run: |
         conda install -y conda-build
-    - name: build pip package
+    - name: build package with conda
       run: |
         conda build github-build
+    - name: Where is the conda package?
+      run: |
+        dir C:\Miniconda\
     - uses: actions/upload-artifact@v2
       with:
         name: window-wheel
