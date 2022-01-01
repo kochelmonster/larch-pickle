@@ -24,6 +24,9 @@ jobs:
     - name: Conda update
       run: |
         conda update --all -y
+    - name: Create dist Directory
+      run: |
+        mkdir dist
     - name: Install dependencies
       run: |
         conda install -y conda-build
@@ -32,8 +35,12 @@ jobs:
         conda build github-build
     - name: Where is the conda package?
       run: |
-        dir C:\Miniconda\
+        dir $env:CONDA\conda-bld\win64
     - uses: actions/upload-artifact@v2
       with:
         name: window-wheel
-        path: dist/*.whl
+        path: dist\*.whl
+    - uses: actions/upload-artifact@v2
+      with:
+        name: window-conda-package
+        path: $env:CONDA\conda-bld\win64\*.whl
