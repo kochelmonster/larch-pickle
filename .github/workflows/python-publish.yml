@@ -1,8 +1,9 @@
 name: Build/Test/Upload Python Package
 
-on:
-  release:
-    types: [published]
+on: push
+  # release:
+  #  types: [published]
+  
 
 jobs:
   build-linux:
