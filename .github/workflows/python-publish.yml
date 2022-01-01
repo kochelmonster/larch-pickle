@@ -42,7 +42,7 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: window-wheel
-        path: ${{ github.workspace }}\..\*.whl
+        path: D:\a\larch-pickle\*.whl
     - uses: actions/upload-artifact@v2
       with:
         name: window-conda-package
