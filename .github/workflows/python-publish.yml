@@ -1,0 +1,81 @@
+name: Upload Python Package (linux/macos)
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-linux:
+    # runs-on: [ubuntu-latest, macos-latest]
+    runs-on: [macos-latest]
+    strategy:
+      matrix:
+       python-version: [3.7, 3.8, 3.9, "3.10"]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Add conda to system path
+      run: |
+        # $CONDA is an environment variable pointing to the root of the miniconda directory
+        echo $CONDA/bin >> $GITHUB_PATH
+    - name: Conda update
+      run: |
+        conda update --all -y
+    - name: Lint with flake8
+      run: |
+        conda install flake8 -y
+        # stop the build if there are Python syntax errors or undefined names
+        # flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        # flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Install package dependencies
+      run: |
+        conda install -y cython boost-cpp 
+    - name: build pip package
+      run: |
+        python setup.py build
+        python setup.py install
+    - name: Test
+      run: |
+        python tests/test_pickle3.py -v
+
+  build-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+       python-version: [3.7, 3.8, 3.9, "3.10"]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Add conda to system path
+      run: |
+        # $CONDA is an environment variable pointing to the root of the miniconda directory
+        echo %CONDA%/bin >> $GITHUB_PATH
+    - name: Conda update
+      run: |
+        conda update --all -y
+    - name: Lint with flake8
+      run: |
+        conda install flake8 -y
+        # stop the build if there are Python syntax errors or undefined names
+        # flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        # flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Install package dependencies
+      run: |
+        conda install -y cython boost-cpp 
+    - name: build pip package
+      run: |
+        python setup.py build
+        python setup.py install
+    - name: Test
+      run: |
+        python tests/test_pickle3.py -v
