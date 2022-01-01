@@ -1,0 +1,37 @@
+# special build for github
+{% set data = load_setup_py_data(setup_file=RECIPE_DIR + "/../setup.py") %}
+
+package:
+  name: {{ data['name'] }}
+  version: {{ data['version'] }}
+
+source:
+  path: ..
+
+build:
+  number: 1
+  script_env:
+    - RUNNER_WORKSPACE
+
+requirements:
+  host:
+    - python
+    - cython
+    - pip
+    - wheel
+
+  build:
+    - {{ compiler('cxx') }}
+    - boost-cpp
+
+test:
+  source_files:
+    - tests
+
+  commands:
+    - python tests/test_pickle3.py -v
+
+about:
+  home: {{ data['url'] }}
+  license: {{ data['license'] }}
+  summary: {{ data['description'] }}
