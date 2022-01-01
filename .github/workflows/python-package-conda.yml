@@ -18,12 +18,12 @@ jobs:
     - run: |
         gci env:* | sort-object name
     - run: |
-        dir %CONDA%
+        dir $env:CONDA
     - name: Add conda to system path
       run: |
-        # %CONDA% is an environment variable pointing to the root of the miniconda directory
-        echo %CONDA% >> %GITHUB_PATH%
-        set PATH=%PATH%:%CONDA%
+        # $env:CONDA is an environment variable pointing to the root of the miniconda directory
+        echo $env:CONDA >> $env:GITHUB_PATH
+        ;set PATH=%PATH%:%CONDA%
     - name: Conda update
       run: |
         conda update --all -y
