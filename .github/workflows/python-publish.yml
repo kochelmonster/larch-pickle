@@ -1,4 +1,4 @@
-name: Upload Python Package (linux/macos)
+name: Build/Test/Upload Python Package
 
 on:
   release:
