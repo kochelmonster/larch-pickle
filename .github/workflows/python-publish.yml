@@ -4,13 +4,14 @@ on: push
   # release:
   #  types: [published]
   
-_jobs:
+jobs:
   build-linux:
     # runs-on: [ubuntu-latest, macos-latest]
     runs-on: ubuntu-latest
     strategy:
       matrix:
-       python-version: [3.7, 3.8, 3.9, "3.10"]
+       # python-version: [3.7, 3.8, 3.9, "3.10"]
+       python-version: [3.7]
 
     steps:
     - uses: actions/checkout@v2
@@ -43,7 +44,6 @@ _jobs:
       run: |
         python tests/test_pickle3.py -v
 
-jobs:
   build-windows:
     runs-on: windows-latest
     strategy:
