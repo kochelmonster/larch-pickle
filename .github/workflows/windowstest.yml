@@ -36,7 +36,7 @@ jobs:
         # flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Install package dependencies
       run: |
-        conda install -y cython boost-cpp 
+        conda install -y cython boost-cpp vs2017_win-64
     - name: build pip package
       run: |
         python setup.py build
