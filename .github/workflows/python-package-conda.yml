@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-       python-version: [3.6, 3.7, 3.8, 3.9, 3.10]
+       python-version: [3.7]
 
     steps:
     - uses: actions/checkout@v2
@@ -19,6 +19,10 @@ jobs:
       run: |
         # $CONDA is an environment variable pointing to the root of the miniconda directory
         echo $CONDA/bin >> $GITHUB_PATH
+    - name: Debug
+      run: |
+        pwd
+        ls -lrt
     - name: Install dependencies
       run: |
         conda env update --file environment.yml --name base
@@ -29,7 +33,7 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Install dependencies
+    - name: Install package dependencies
       run: |
         conda install -y cython boost-cpp build
     - name: build pip package
