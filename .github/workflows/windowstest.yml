@@ -18,7 +18,7 @@ jobs:
     - run: |
         gci env:* | sort-object name
     - run: |
-        dir $env:CONDA
+        dir C:/Program Files (x86)/
     - name: Add conda to system path
       run: |
         # $env:CONDA is an environment variable pointing to the root of the miniconda directory
