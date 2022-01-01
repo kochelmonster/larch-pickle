@@ -24,12 +24,28 @@ jobs:
         pwd
         ls -lrt
         conda env list 
-        echo $CONDA_PREFIX
-        conda info --base
         echo $CONDA
-    - name: Into Conda
+
+    - name: Debug CONDA Prefix
       run: |
-        conda activate base
+        echo $CONDA_PREFIX
+
+    - name: Debug Path
+      run: |
+        echo $PATH
+
+    - name: Debug CONDA
+      run: |
+        source $CONDA_PREFIX/bin/activate base
+        echo $CONDA_PREFIX
+
+    - name: Debug CONDA Prefix2
+      run: |
+        echo $CONDA_PREFIX
+
+
+    - name: Conda update
+      run: |
         conda update --all
     - name: Lint with flake8
       run: |
