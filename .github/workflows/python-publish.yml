@@ -8,7 +8,7 @@ on: push
 jobs:
   build-linux:
     # runs-on: [ubuntu-latest, macos-latest]
-    runs-on: [macos-latest]
+    runs-on: ubuntu-latest
     strategy:
       matrix:
        python-version: [3.7, 3.8, 3.9, "3.10"]
@@ -48,7 +48,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-       python-version: [3.7, 3.8, 3.9, "3.10"]
+       python-version: [3.7]
 
     steps:
     - uses: actions/checkout@v2
@@ -56,10 +56,14 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+    - run: |
+        echo "CONDA PATH %CONDA%"
+    - run: |
+        echo "GITHUB_PATH PATH %GITHUB_PATH%"
     - name: Add conda to system path
       run: |
-        # $CONDA is an environment variable pointing to the root of the miniconda directory
-        echo %CONDA%/bin >> $GITHUB_PATH
+        # %CONDA% is an environment variable pointing to the root of the miniconda directory
+        echo %CONDA%/bin >> %GITHUB_PATH%
     - name: Conda update
       run: |
         conda update --all -y
