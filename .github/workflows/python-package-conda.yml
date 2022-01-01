@@ -36,7 +36,7 @@ jobs:
 
     - name: Debug CONDA
       run: |
-        source $CONDA_PREFIX/bin/activate base
+        source $CONDA/bin/activate base
         echo $CONDA_PREFIX
 
     - name: Debug CONDA Prefix2
