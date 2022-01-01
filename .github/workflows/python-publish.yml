@@ -41,9 +41,9 @@ jobs:
         dir D:\a\larch-pickle
     - uses: actions/upload-artifact@v2
       with:
-        name: window-wheel
+        name: window-wheel-${{ matrix.python-version }}
         path: D:\a\larch-pickle\*.whl
     - uses: actions/upload-artifact@v2
       with:
-        name: window-conda-package
+        name: window-conda-${{ matrix.python-version }}
         path: C:\Miniconda\conda-bld\win-64\larch*.bz2
