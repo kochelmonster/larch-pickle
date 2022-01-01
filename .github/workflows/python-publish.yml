@@ -62,6 +62,7 @@ jobs:
       run: |
         # %CONDA% is an environment variable pointing to the root of the miniconda directory
         echo %CONDA%/bin >> %GITHUB_PATH%
+        set PATH=%PATH%:%CONDA%/bin
     - name: Conda update
       run: |
         conda update --all -y
