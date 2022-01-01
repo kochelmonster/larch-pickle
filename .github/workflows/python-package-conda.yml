@@ -25,6 +25,8 @@ jobs:
         ls -lrt
         conda env list 
         echo $CONDA_PREFIX
+        conda info --base
+        echo $CONDA
     - name: Into Conda
       run: |
         conda activate base
