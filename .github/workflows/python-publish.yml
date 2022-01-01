@@ -1,4 +1,4 @@
-name: Windows Test
+name: Python Build and Upload
 
 on: push
   
@@ -7,7 +7,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-       python-version: [3.7]
+       python-version: [3.7, 3.8]
 
     steps:
     - uses: actions/checkout@v2
