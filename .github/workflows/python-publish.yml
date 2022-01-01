@@ -35,15 +35,15 @@ jobs:
         conda build github-build
     - name: DEBUG1
       run: |
-        dir $env:CONDA\conda-bld\win-64
+        dir $env:RUNNER_WORKSPACE
     - name: DEBUG2
       run: |
-        dir 
+        dir D:\a\larch-pickle
     - uses: actions/upload-artifact@v2
       with:
         name: window-wheel
-        path: dir $env:RUNNER_WORKSPACE
+        path: ${{ github.workspace }}\*.whl
     - uses: actions/upload-artifact@v2
       with:
         name: window-conda-package
-        path: C:\Miniconda\conda-bld\win-64\*.bz2
+        path: C:\Miniconda\conda-bld\win-64\larch*.bz2
