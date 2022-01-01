@@ -24,9 +24,11 @@ jobs:
         pwd
         ls -lrt
         conda env list 
-    - name: Install dependencies
+        echo $CONDA_PREFIX
+    - name: Into Conda
       run: |
-        conda env update --file environment.yml --name base
+        conda activate base
+        conda update --all
     - name: Lint with flake8
       run: |
         conda install flake8
