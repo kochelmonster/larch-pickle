@@ -25,11 +25,9 @@ requirements:
     - boost-cpp
 
 test:
-  source_files:
-    - tests
+  import:
+    - larch.pickle
 
-  commands:
-    - python tests/test_pickle3.py -v
 
 about:
   home: {{ data['url'] }}
