@@ -22,8 +22,8 @@ jobs:
     - name: Add conda to system path
       run: |
         # $env:CONDA is an environment variable pointing to the root of the miniconda directory
-        echo $env:CONDA >> $env:GITHUB_PATH
-        ;set PATH=%PATH%:%CONDA%
+        echo $env:CONDA\Scripts >> $env:GITHUB_PATH
+        ;set PATH="$env:PATH":"$env:CONDA\Scripts"
     - name: Conda update
       run: |
         conda update --all -y
