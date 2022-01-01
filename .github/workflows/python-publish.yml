@@ -46,4 +46,4 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: window-conda-package
-        path: $env:CONDA\conda-bld\win-64\*.bz2
+        path: C:\Miniconda\conda-bld\win-64\*.bz2
