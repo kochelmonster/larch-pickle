@@ -27,20 +27,12 @@ jobs:
     - name: Conda update
       run: |
         conda update --all -y
-    - name: Lint with flake8
+    - name: Install dependencies
       run: |
-        conda install flake8 -y
-        # stop the build if there are Python syntax errors or undefined names
-        # flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        # flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Install package dependencies
-      run: |
-        conda install -y cython boost-cpp vs2017_win-64
+        conda install -y build conda.recipe
     - name: build pip package
       run: |
-        python setup.py build
-        python setup.py install
+        conda build
     - name: Test
       run: |
         python tests/test_pickle3.py -v
