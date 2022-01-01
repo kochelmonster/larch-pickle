@@ -4,8 +4,7 @@ on: push
   # release:
   #  types: [published]
   
-
-jobs:
+_jobs:
   build-linux:
     # runs-on: [ubuntu-latest, macos-latest]
     runs-on: ubuntu-latest
@@ -44,6 +43,7 @@ jobs:
       run: |
         python tests/test_pickle3.py -v
 
+jobs:
   build-windows:
     runs-on: windows-latest
     strategy:
@@ -57,9 +57,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - run: |
-        echo "CONDA PATH %CONDA%"
-    - run: |
-        echo "GITHUB_PATH PATH %GITHUB_PATH%"
+        gci env:* | sort-object name
     - name: Add conda to system path
       run: |
         # %CONDA% is an environment variable pointing to the root of the miniconda directory
