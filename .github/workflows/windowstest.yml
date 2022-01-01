@@ -29,10 +29,10 @@ jobs:
         conda update --all -y
     - name: Install dependencies
       run: |
-        conda install -y build conda.recipe
+        conda install -y build
     - name: build pip package
       run: |
-        conda build
+        conda build conda.recipe
     - name: Test
       run: |
         python tests/test_pickle3.py -v
