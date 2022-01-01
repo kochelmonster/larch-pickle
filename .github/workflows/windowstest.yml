@@ -11,6 +11,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: debug
+      run: |
+        gci env:* | sort-object name
     - name: Adjust python version
       run: |
         $env:CONDA_PY = ${{ matrix.python-version }}
@@ -26,7 +29,7 @@ jobs:
         conda install -y conda-build
     - name: build pip package
       run: |
-        conda build github
+        conda build github-build
     - uses: actions/upload-artifact@v2
       with:
         name: window-wheel
