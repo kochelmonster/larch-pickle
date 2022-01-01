@@ -35,7 +35,7 @@ jobs:
         conda build github-build
     - name: Where is the conda package?
       run: |
-        dir $env:CONDA\conda-bld\win64
+        dir $env:CONDA\conda-bld
     - uses: actions/upload-artifact@v2
       with:
         name: window-wheel
