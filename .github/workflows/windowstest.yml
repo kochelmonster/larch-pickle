@@ -11,28 +11,5 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
     - run: |
         gci env:* | sort-object name
-    - run: |
-        dir "C:/Program Files (x86)/"
-    - name: Add conda to system path
-      run: |
-        # $env:CONDA is an environment variable pointing to the root of the miniconda directory
-        echo $env:CONDA\Scripts >> $env:GITHUB_PATH
-        ;set PATH="$env:PATH":"$env:CONDA\Scripts"
-    - name: Conda update
-      run: |
-        conda update --all -y
-    - name: Install dependencies
-      run: |
-        conda install -y conda-build
-    - name: build pip package
-      run: |
-        conda build conda.recipe
-    - name: Test
-      run: |
-        python tests/test_pickle3.py -v
