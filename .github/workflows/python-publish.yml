@@ -1,4 +1,4 @@
-name: Windows Test
+name: Python Build and Upload
 
 on: push
   
@@ -7,16 +7,13 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-       python-version: [3.7]
+       python-version: [3.7, 3.8]
 
     steps:
     - uses: actions/checkout@v2
     - name: debug
       run: |
         gci env:* | sort-object name
-    - name: Adjust python version
-      run: |
-        $env:CONDA_PY = ${{ matrix.python-version }}
     - name: Add conda to system path
       run: |
         # $env:CONDA is an environment variable pointing to the root of the miniconda directory
@@ -32,18 +29,12 @@ jobs:
         conda install -y conda-build
     - name: build package with conda
       run: |
-        conda build github-build
-    - name: DEBUG1
-      run: |
-        dir $env:CONDA\conda-bld\win-64
-    - name: DEBUG2
-      run: |
-        dir 
+        conda build --python=${{ matrix.python-version }} github-build
     - uses: actions/upload-artifact@v2
       with:
-        name: window-wheel
-        path: dir $env:RUNNER_WORKSPACE
+        name: window-wheel-${{ matrix.python-version }}
+        path: D:\a\larch-pickle\*.whl
     - uses: actions/upload-artifact@v2
       with:
-        name: window-conda-package
-        path: $env:CONDA\conda-bld\win-64\*.bz2
+        name: window-conda-${{ matrix.python-version }}
+        path: C:\Miniconda\conda-bld\win-64\larch*.bz2
