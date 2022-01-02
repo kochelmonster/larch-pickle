@@ -1,6 +1,8 @@
 name: Python Build and Upload
 
-on: push
+on:
+  release:
+    types: [published]
   
 jobs:
   build-windows:
