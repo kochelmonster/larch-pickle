@@ -17,6 +17,9 @@ jobs:
      run: |
        # $CONDA is an environment variable pointing to the root of the miniconda directory
        echo $CONDA/Scripts >> $GITHUB_PATH
+   - name: Change Permissions
+     run: |
+       sudo chown 501:20 /usr/local/miniconda/pkgs/cache/53d7ef51.json
    - name: Conda update
      run: |
        conda update --all -y
