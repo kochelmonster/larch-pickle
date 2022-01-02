@@ -5,38 +5,33 @@ on:
     types: [published]
   
 jobs:
-  build-windows:
-    runs-on: windows-latest
-    strategy:
-      matrix:
-       python-version: [3.7, 3.8]
+  build-macos:
+   runs-on: macos-latest
+   strategy:
+     matrix:
+      python-version: [3.7]
 
-    steps:
-    - uses: actions/checkout@v2
-    - name: debug
-      run: |
-        gci env:* | sort-object name
-    - name: Add conda to system path
-      run: |
-        # $env:CONDA is an environment variable pointing to the root of the miniconda directory
-        echo $env:CONDA\Scripts >> $env:GITHUB_PATH
-    - name: Conda update
-      run: |
-        conda update --all -y
-    - name: Create dist Directory
-      run: |
-        mkdir dist
-    - name: Install dependencies
-      run: |
-        conda install -y conda-build
-    - name: build package with conda
-      run: |
-        conda build --python=${{ matrix.python-version }} github-build
-    - uses: actions/upload-artifact@v2
-      with:
-        name: window-wheel-${{ matrix.python-version }}
-        path: D:\a\larch-pickle\*.whl
-    - uses: actions/upload-artifact@v2
-      with:
-        name: window-conda-${{ matrix.python-version }}
-        path: C:\Miniconda\conda-bld\win-64\larch*.bz2
+   steps:
+   - uses: actions/checkout@v2
+   - name: Add conda to system path
+     run: |
+       # $CONDA is an environment variable pointing to the root of the miniconda directory
+       echo $CONDA/Scripts >> $GITHUB_PATH
+   - name: Conda update
+     run: |
+       conda update --all -y
+   - name: Create dist Directory
+     run: |
+       mkdir dist
+   - name: Install dependencies
+     run: |
+       conda install -y conda-build
+   - name: build package with conda
+     run: |
+       conda build --python=${{ matrix.python-version }} github-build
+   - name: DEBUG1
+     run: |
+       ls $RUNNER_WORKSPACE
+   - name: DEBUG2
+     run: |
+       ls $CONDA
