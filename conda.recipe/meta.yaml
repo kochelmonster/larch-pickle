@@ -21,6 +21,9 @@ requirements:
     - {{ compiler('cxx') }}
     - boost-cpp
 
+  run:
+    - python
+
 test:
   import:
     - larch.pickle
