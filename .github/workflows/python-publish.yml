@@ -20,7 +20,7 @@ jobs:
    
    - name: change xcode version
      run: |
-       sudo xcode-select -switch 6.4
+       sudo xcode-select -switch 11.7
    
    - name: Add conda to system path
      run: |
