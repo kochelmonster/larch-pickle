@@ -1,6 +1,6 @@
 name: Python Build and Upload
 
-on: push
+on: workflow_dispatch
   #release:
   #  types: [published]
 
@@ -26,11 +26,11 @@ jobs:
    - name: build package with conda
      run: |
        sudo --preserve-env=RUNNER_WORKSPACE conda build --python=${{ matrix.python-version }} github-build
-   - uses: actions/upload-artifact@v2
+   - uses: svenstaro/upload-release-action@v2
      with:
-       name: macos-wheel-${{ matrix.python-version }}
-       path: /Users/runner/work/larch-pickle/*.whl
-   - uses: actions/upload-artifact@v2
-     with:
-       name: macos-conda-${{ matrix.python-version }}
-       path: /usr/local/miniconda/conda-bld/osx-64/larch*.bz2
+       repo_token: ${{ secrets.GITHUB_TOKEN }}
+       file: /Users/runner/work/larch-pickle/*.whl
+       file_glob: true
+       tag: ${{ github.ref }}
+       overwrite: true
+       body: "python wheel for macos and python ${{ matrix.python-version }}"
