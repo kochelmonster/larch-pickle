@@ -6,7 +6,7 @@ on: push
   
 jobs:
   build-macos:
-   runs-on: macos-11
+   runs-on: macos-latest
    strategy:
      matrix:
       python-version: [3.9]
@@ -17,9 +17,6 @@ jobs:
      run: |
        # $CONDA is an environment variable pointing to the root of the miniconda directory
        echo $CONDA/Scripts >> $GITHUB_PATH
-   - name: Conda update
-     run: |
-       sudo conda update --all -y
    - name: Install dependencies
      run: |
        sudo conda install -y conda-build
