@@ -3,7 +3,7 @@ name: Python Build and Upload
 on: push
   #release:
   #  types: [published]
-  
+
 jobs:
   build-macos:
    runs-on: macos-latest
@@ -13,15 +13,23 @@ jobs:
 
    steps:
    - uses: actions/checkout@v2
-   
+
    - name: debug
      run: |
-       ls /Applications
-   
+       echo "runner: $RUNNER_WORKSPACE"
+
+   - name: Set Workspace
+     run: |
+       export RUNNER_WORKSPACE=`pwd`
+
+   - name: debug
+     run: |
+       echo "runner: $RUNNER_WORKSPACE"
+
    - name: change xcode version
      run: |
        sudo xcode-select -switch /Applications/Xcode_11.7.app
-   
+
    - name: Add conda to system path
      run: |
        # $CONDA is an environment variable pointing to the root of the miniconda directory
