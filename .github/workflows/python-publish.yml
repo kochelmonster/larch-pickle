@@ -5,77 +5,22 @@ on: workflow_dispatch
   #  types: [published]
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
+  build-linux:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-       python-version: [3.7, 3.8]
+       python-version: [3.7]
 
     steps:
     - uses: actions/checkout@v2
-    - name: debug
-      run: |
-        gci env:* | sort-object name
-    - name: Add conda to system path
-      run: |
-        # $env:CONDA is an environment variable pointing to the root of the miniconda directory
-        echo $env:CONDA\Scripts >> $env:GITHUB_PATH
-    - name: Conda update
-      run: |
-        conda update --all -y
-    - name: Install dependencies
-      run: |
-        conda install -y conda-build
-    - name: build package with conda
-      run: |
-        conda build --python=${{ matrix.python-version }} github-build
-    - uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: D:\a\larch-pickle\*.whl
-        file_glob: true
-        tag: ${{ github.ref }}
-        overwrite: true
-    - uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: C:\Miniconda\conda-bld\win-64\larch*.bz2
-        file_glob: true
-        tag: ${{ github.ref }}
-        overwrite: true
 
-  build-macos:
-   runs-on: macos-latest
-   strategy:
-     matrix:
-      python-version: [3.9]
-
-   steps:
-   - uses: actions/checkout@v2
-   - name: change xcode version
-     run: |
-       sudo xcode-select -switch /Applications/Xcode_11.7.app
-   - name: Add conda to system path
-     run: |
-       # $CONDA is an environment variable pointing to the root of the miniconda directory
-       echo $CONDA/Scripts >> $GITHUB_PATH
-   - name: Install dependencies
-     run: |
-       sudo conda install -y conda-build
-   - name: build package with conda
-     run: |
-       sudo --preserve-env=RUNNER_WORKSPACE conda build --python=${{ matrix.python-version }} github-build
-   - uses: svenstaro/upload-release-action@v2
-     with:
-       repo_token: ${{ secrets.GITHUB_TOKEN }}
-       file: /Users/runner/work/larch-pickle/*.whl
-       file_glob: true
-       tag: ${{ github.ref }}
-       overwrite: true
-   - uses: svenstaro/upload-release-action@v2
-     with:
-       repo_token: ${{ secrets.GITHUB_TOKEN }}
-       file: /usr/local/miniconda/conda-bld/osx-64/larch*.bz2
-       file_glob: true
-       tag: ${{ github.ref }}
-       overwrite: true
+    - name: DEBUG1
+      run: |
+        echo "---------------RUNNER_WORKSPACE------"
+        echo $RUNNER_WORKSPACE
+        ls $RUNNER_WORKSPACE
+    - name: DEBUG2
+      run: |
+        echo "---------------conda------"
+        echo $CONDA
+        ls $CONDA
