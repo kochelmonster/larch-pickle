@@ -22,11 +22,14 @@ jobs:
        pwd
        ls
    
-   - name: Excute installer
+   - name: Prepare installer
      run: |
       sudo chmod +x XcodeLegacy.sh
-      sudo ./XcodeLegacy.sh -osx1010
-       
+
+   - name: Eexcute installer
+     run: |
+      sudo ./XcodeLegacy.sh -osx1010 install
+
    - name: Add conda to system path
      run: |
        # $CONDA is an environment variable pointing to the root of the miniconda directory
