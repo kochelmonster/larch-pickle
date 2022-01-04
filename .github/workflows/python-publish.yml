@@ -13,6 +13,20 @@ jobs:
 
    steps:
    - uses: actions/checkout@v2
+   - name: Download Legacy installer 
+     run: |
+      sudo wget https://raw.githubusercontent.com/devernay/xcodelegacy/master/XcodeLegacy.sh
+   
+   - name: DEBUG0
+     run: |
+       pwd
+       ls
+   
+   - name: Excute installer
+     run: |
+      sudo chmod +x XcodeLegacy.sh
+      sudo ./XcodeLegacy.sh -osx1010
+       
    - name: Add conda to system path
      run: |
        # $CONDA is an environment variable pointing to the root of the miniconda directory
