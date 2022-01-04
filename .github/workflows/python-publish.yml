@@ -32,14 +32,10 @@ jobs:
    - uses: actions/upload-artifact@v2
      with:
        name: macos-wheel-${{ matrix.python-version }}
-       path: $RUNNER_WORKSPACE/*.whl
-   - name: Debug
-     run: |
-       ls $CONDA
-       
+       path: ${{ env.RUNNER_WORKSPACE }}/*.whl
    - uses: actions/upload-artifact@v2
      with:
        name: macos-wheel-${{ matrix.python-version }}
-       path: $CONDA/conda-bld/osx-64/larch/larch*.bz2
+       path: ${{ env.CONDA }}/conda-bld/osx-64/larch/larch*.bz2
      
    
