@@ -39,7 +39,7 @@ jobs:
        sudo conda install -y conda-build
    - name: build package with conda
      run: |
-       sudo conda build --python=${{ matrix.python-version }} github-build
+       sudo --preserve-env=RUNNER_WORKSPACE conda build --python=${{ matrix.python-version }} github-build
    - name: DEBUG1
      run: |
        ls $RUNNER_WORKSPACE
