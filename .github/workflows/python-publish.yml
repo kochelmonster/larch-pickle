@@ -13,23 +13,12 @@ jobs:
 
    steps:
    - uses: actions/checkout@v2
-
-   - name: debug
-     run: |
-       echo "runner: $RUNNER_WORKSPACE"
-
    - name: Set Workspace
      run: |
        export RUNNER_WORKSPACE=`pwd`
-
-   - name: debug
-     run: |
-       echo "runner: $RUNNER_WORKSPACE"
-
    - name: change xcode version
      run: |
        sudo xcode-select -switch /Applications/Xcode_11.7.app
-
    - name: Add conda to system path
      run: |
        # $CONDA is an environment variable pointing to the root of the miniconda directory
@@ -40,9 +29,17 @@ jobs:
    - name: build package with conda
      run: |
        sudo --preserve-env=RUNNER_WORKSPACE conda build --python=${{ matrix.python-version }} github-build
-   - name: DEBUG1
-     run: |
-       ls $RUNNER_WORKSPACE
-   - name: DEBUG2
+   - uses: actions/upload-artifact@v2
+     with:
+       name: macos-wheel-${{ matrix.python-version }}
+       path: $RUNNER_WORKSPACE/*.whl
+   - name: Debug
      run: |
        ls $CONDA
+       
+   - uses: actions/upload-artifact@v2
+     with:
+       name: macos-wheel-${{ matrix.python-version }}
+       path: $CONDA/conda-bld/osx-64/larch/larch*.bz2
+     
+   
