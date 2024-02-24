@@ -16,7 +16,7 @@ build:
 requirements:
   host:
     - python
-    - cython=0.29.37
+    - cython<3.0.0
     - pip
     - wheel
 
