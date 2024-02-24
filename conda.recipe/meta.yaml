@@ -14,7 +14,7 @@ build:
 requirements:
   host:
     - python
-    - cython
+    - cython=0.29.37
     - pip
 
   build:
