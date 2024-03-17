@@ -10,6 +10,11 @@ jobs:
        python-version: ["3.12"]
 
     steps:
+    - name: Get release
+      id: get_release
+      uses: thebritican/fetch-latest-release@v2
+      env:
+        GITHUB_TOKEN: ${{ github.token }}        
     - uses: actions/checkout@v4
     - name: Add conda to system path
       run: |
@@ -21,11 +26,6 @@ jobs:
     - name: build package with conda
       run: |
         conda build --python=${{ matrix.python-version }} github-build
-    - name: Get release
-      id: get_release
-      uses: thebritican/fetch-latest-release@v1
-      env:
-        GITHUB_TOKEN: ${{ github.token }}        
     - name: echos
       run: |
         echo "uploadUrl1 ${{ steps.get_release.outputs.upload_url }}"
