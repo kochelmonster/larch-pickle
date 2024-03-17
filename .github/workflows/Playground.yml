@@ -35,11 +35,14 @@ jobs:
     - name: debug2
       run: |
         echo "workspace ${{ github.workspace }}"
+        echo "runner_workspace ${{ runner.workspace }}"
         dir ${{ github.workspace }}
+        dir ${{ runner.workspace }}
+        dir D:\a\larch-pickle"
     - uses: shogo82148/actions-upload-release-asset@v1
       with:
         upload_url: ${{ steps.get_release.outputs.upload_url }}
-        asset_path: ${{ github.workspace }}\*.whl
+        asset_path: D:\a\larch-pickle"\*.whl
         overwrite: true
     - uses: shogo82148/actions-upload-release-asset@v1
       with:
