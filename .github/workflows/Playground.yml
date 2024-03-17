@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-       python-version: [3.9, "3.10", "3.11", "3.12"]
+       python-version: ["3.12"]
 
     steps:
     - uses: actions/checkout@v4
@@ -21,6 +21,11 @@ jobs:
     - name: build package with conda
       run: |
         conda build --python=${{ matrix.python-version }} github-build
+    - name: echos
+      run: |
+        echo "secrets.GITHUB_TOKEN ${{ secrets.GITHUB_TOKEN }}"
+        echo "github.ref ${{ github.ref }}"
+        ls /home/runner
     - uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
