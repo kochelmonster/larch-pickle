@@ -65,7 +65,7 @@ jobs:
     - uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: D:\a\larch-pickle\*.whl
+        file: C:\Miniconda\conda-bld\*.whl
         file_glob: true
         tag: ${{ github.ref }}
         overwrite: true
@@ -87,7 +87,7 @@ jobs:
    - uses: actions/checkout@v2
    - name: change xcode version
      run: |
-       sudo xcode-select -switch /Applications/Xcode_11.7.app
+       sudo xcode-select -switch /Applications/Xcode_13.3.app
    - name: Add conda to system path
      run: |
        # $CONDA is an environment variable pointing to the root of the miniconda directory
@@ -97,7 +97,7 @@ jobs:
        sudo conda install -y conda-build
    - name: build package with conda
      run: |
-       sudo --preserve-env=RUNNER_WORKSPACE conda build --python=${{ matrix.python-version }} github-build
+       sudo --preserve-env=RUNNER_WORKSPACE conda build --debug --python=${{ matrix.python-version }} github-build
    - uses: svenstaro/upload-release-action@v2
      with:
        repo_token: ${{ secrets.GITHUB_TOKEN }}
