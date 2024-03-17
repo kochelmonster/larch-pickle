@@ -27,10 +27,10 @@ jobs:
         echo "github.ref ${{ github.ref }}"
         ls -l /home/runner/work/larch-pickle/*.whl
         ls -l /usr/share/miniconda/conda-bld/linux-64/larch*.bz2
-    - uses: AButler/upload-release-assets@v3.0
+    - uses: shogo82148/actions-upload-release-asset@v1
       with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        files: /home/runner/work/larch-pickle/*.whl
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: /home/runner/work/larch-pickle/*.whl
     - uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
