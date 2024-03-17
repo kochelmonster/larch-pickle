@@ -3,8 +3,8 @@ name: Playground
 on: workflow_dispatch
 
 jobs:
- build-linux:
-    runs-on: ubuntu-latest
+  build-windows:
+    runs-on: windows-latest
     strategy:
       matrix:
        python-version: ["3.12"]
@@ -16,31 +16,31 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ github.token }}        
     - uses: actions/checkout@v4
+    - name: debug
+      run: |
+        gci env:* | sort-object name
     - name: Add conda to system path
       run: |
-        # $CONDA is an environment variable pointing to the root of the miniconda directory
-        echo $CONDA/Scripts >> $GITHUB_PATH
+        # $env:CONDA is an environment variable pointing to the root of the miniconda directory
+        echo $env:CONDA\Scripts >> $env:GITHUB_PATH
+    - name: Conda update
+      run: |
+        conda update --all -y
     - name: Install dependencies
       run: |
         conda install -y conda-build
     - name: build package with conda
       run: |
         conda build --python=${{ matrix.python-version }} github-build
-    - name: echos
-      run: |
-        echo "uploadUrl1 ${{ steps.get_release.outputs.upload_url }}"
-        echo "uploadUrl2 ${{ github.event.release.upload_url }}"
-        echo "github.ref ${{ github.ref }}"
-        echo "github.ref ${{ github.ref }}"
-        ls -l /home/runner/work/larch-pickle/*.whl
-        ls -l /usr/share/miniconda/conda-bld/linux-64/larch*.bz2
     - uses: shogo82148/actions-upload-release-asset@v1
       with:
         upload_url: ${{ steps.get_release.outputs.upload_url }}
-        asset_path: /home/runner/work/larch-pickle/*.whl
+        asset_path: C:\Miniconda\conda-bld\*.whl
         overwrite: true
     - uses: shogo82148/actions-upload-release-asset@v1
       with:
         upload_url: ${{ steps.get_release.outputs.upload_url }}
-        asset_path: /usr/share/miniconda/conda-bld/linux-64/larch*.bz2
+        asset_path: C:\Miniconda\conda-bld\win-64\larch*.bz2
         overwrite: true
+
+ 
