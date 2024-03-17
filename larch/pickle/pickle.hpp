@@ -36,8 +36,8 @@ typedef int (*write_t)(PyObject* p, void* data, size_t size);
 typedef int (*read_t)(PyObject* p, void* data, size_t size);
 
 
-typedef void (*debug_t)(const char* msg, PyObject *o, long v);
-static debug_t debug;
+// typedef void (*debug_t)(const char* msg, PyObject *o, long v);
+// static debug_t debug;
 
 
 class PythonError: std::exception {

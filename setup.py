@@ -3,14 +3,8 @@ import os.path
 import os
 from setuptools import setup, find_packages
 from contextlib import contextmanager
-try:
-    from Cython.Distutils import build_ext, Extension
-    has_cython = True
-except ImportError:
-    has_cython = False
-
-    class Extension:
-        pass
+from setuptools import Extension, setup
+from Cython.Build import cythonize
 
 
 compile_debug = os.environ.get("LARCH_INSTALL_FOR_TEST")
@@ -19,8 +13,12 @@ compile_debug = os.environ.get("LARCH_INSTALL_FOR_TEST")
 class LarchExtension(Extension):
     dbase = os.path.join("larch", "pickle")
 
-    def __init__(self):
-        Extension.__init__(self, self.name, [], cython_c_in_temp=True)
+    def __init__(self, *args, **kwds):
+        kwds["name"] = self.name
+        kwds["sources"] = []
+        super(LarchExtension, self).__init__(**kwds)
+
+        #Extension.__init__(self, self.name, [], cython_c_in_temp=True)
         self.cython_compile_time_env = {
             "PY_MAJOR_VERSION": sys.version_info[0]}
         self.make()
@@ -118,13 +116,7 @@ class Pickle(LarchExtension):
             add("unpack.hpp")
             add("pack.hpp")
 
-
-if has_cython:
-    ext_modules = [Pickle()]
-    cmdclass = {"build_ext": build_ext}
-else:
-    ext_modules = []
-    cmdclass = {}
+ext_modules = [Pickle()]
 
 
 module_dir = os.path.dirname(os.path.abspath(__file__))
@@ -133,6 +125,7 @@ setup(
     name="larch-pickle",
     version="1.4.2",
     packages=find_packages(),
+    exclude=["pickle.pyx"], # don't generate auto extension
 
     # metadata for upload to PyPI
     author='Michael Reithinger',
@@ -154,4 +147,4 @@ setup(
         "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
         "Programming Language :: Python :: 3",
         "Topic :: Software Development :: Libraries :: Python Modules"],
-    cmdclass=cmdclass, ext_modules=ext_modules)
+    ext_modules=cythonize(ext_modules))

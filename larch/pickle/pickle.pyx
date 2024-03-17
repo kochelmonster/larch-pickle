@@ -69,17 +69,16 @@ cdef set secure_modules = pickle_register.secure_modules
 logger = logging.getLogger("larch.pickle")
 
 
-IF PY_MAJOR_VERSION > 2:
-    import copyreg
-    import _compat_pickle
 
-    cdef:
-        dict name_mapping_2to3 = _compat_pickle.NAME_MAPPING
-        dict import_mapping_2to3 = _compat_pickle.IMPORT_MAPPING
-        dict name_mapping_3to2 = _compat_pickle.REVERSE_NAME_MAPPING
-        dict import_mapping_3to2 = _compat_pickle.REVERSE_IMPORT_MAPPING
-ELSE:
-    import copy_reg as copyreg
+import copyreg
+import _compat_pickle
+
+cdef:
+    dict name_mapping_2to3 = _compat_pickle.NAME_MAPPING
+    dict import_mapping_2to3 = _compat_pickle.IMPORT_MAPPING
+    dict name_mapping_3to2 = _compat_pickle.REVERSE_NAME_MAPPING
+    dict import_mapping_3to2 = _compat_pickle.REVERSE_IMPORT_MAPPING
+
 
 cdef object REDUCE_PROTOCOL = 4
 cdef MAX_PROTOCOL_VERSION = 4
@@ -108,8 +107,8 @@ cdef extern from "pickle.hpp":
     ctypedef int (*write_t)(object pickler, void* data, size_t size) except -1
     ctypedef int (*read_t)(object unpickler, void* data, size_t size) except -1
 
-    ctypedef void (*debug_t)(char* msg, object o, long v)
-    cdef debug_t debug
+    #ctypedef void (*debug_t)(char* msg, object o, long v)
+    #cdef debug_t debug
 
     void throw_python_error()
 
@@ -121,15 +120,13 @@ cdef extern from "pickle.hpp":
         OLD_STYLE, INIT_ARGS, END_OBJECT_ITEMS, BYTES, UNISTR,
         OBJECT_NEW_CUSTOM, GLOBAL_OBJECT, FAST_NEW, COUNT_EXT_TYPES
 
+    # cdef show_debug(char* msg, object o, long v):
+    #     if <PyObject*>o is NULL:
+    #         print(msg, hex(v), "NULL")
+    #     else:
+    #         print(msg, hex(v), repr(o), hex(<size_t><PyObject*>o), (<PyObject*>o).ob_refcnt)
 
-IF True:
-    cdef show_debug(char* msg, object o, long v):
-        if <PyObject*>o is NULL:
-            print(msg, hex(v), "NULL")
-        else:
-            print(msg, hex(v), repr(o), hex(<size_t><PyObject*>o), (<PyObject*>o).ob_refcnt)
-
-    debug = <debug_t>show_debug
+    # debug = <debug_t>show_debug
 
 
 cdef extern from "pack.hpp":
@@ -392,7 +389,7 @@ cdef inline void reraise():
     throw_python_error()
 
 
-cdef void save_long(Packer* p, object o):
+cdef void save_long(Packer* p, object o) noexcept:
     # see original _pickle.c
     cdef:
         size_t nbytes, nbits = _PyLong_NumBits(o)
@@ -434,7 +431,7 @@ cdef inline int _save_global(Packer* p, object o) except -1:
     (<Pickler>p.pickler).pack_import1(GLOBAL, o)
 
 
-cdef void save_global(Packer* p, object o):
+cdef void save_global(Packer* p, object o) noexcept:
     try:
         _save_global(p, o)
     except:
@@ -496,7 +493,7 @@ cdef inline int _save_reduced(Packer* p, object o) except -1:
     save_object_state(p, state)
 
 
-cdef void save_reduced(Packer* p, object o):
+cdef void save_reduced(Packer* p, object o) noexcept:
     try:
         _save_reduced(p,  o)
     except:
@@ -519,7 +516,7 @@ cdef inline int _save_new_object_finish(Packer* p, o, state) except -1:
     return 0
 
 
-cdef inline void save_new_object(Packer* p, object o):
+cdef inline void save_new_object(Packer* p, object o) noexcept:
     try:
         if p.protocol < 4:
             _save_new_object(p, o)
@@ -618,7 +615,7 @@ cdef inline int _save_object(Packer* p, object o) except -1:
     save_object_state(p, state)
 
 
-cdef void save_object(Packer* p, object o):
+cdef void save_object(Packer* p, object o) noexcept:
     try:
         _save_object(p, o)
     except:
@@ -627,14 +624,10 @@ cdef void save_object(Packer* p, object o):
 save_object_ptr = save_object
 
 
-cdef void save_impossible(Packer* p, object o):
-    IF PY_MAJOR_VERSION > 2:
-        cdef:
-            unicode msg = "Cannot save {!r}".format(o)
-            bytes bmsg = msg.encode()
-    ELSE:
-        cdef:
-            bytes bmsg = "Cannot save {!r}".format(o)
+cdef void save_impossible(Packer* p, object o) noexcept:
+    cdef:
+        unicode msg = "Cannot save {!r}".format(o)
+        bytes bmsg = msg.encode()
 
     PyErr_SetString(PicklingError, bmsg)
     throw_python_error()
@@ -658,17 +651,11 @@ register_type(iter(()), save_impossible)
 pickle_registry.register_type(types.GeneratorType, save_impossible)
 
 
-IF PY_MAJOR_VERSION > 2:
-    #the string type will be used as first dump candidate!
-    cdef _string_type = type(unicode())
-    string_type = <void*>_string_type
-    save_string_ptr = save_str3
-    register_type(bytes(), save_bytes)
-ELSE:
-    cdef _string_type = type(bytes())
-    string_type = <void*>_string_type
-    save_string_ptr = save_str2
-    register_type(unicode(), save_unicode)
+#the string type will be used as first dump candidate!
+cdef _string_type = type(unicode())
+string_type = <void*>_string_type
+save_string_ptr = save_str3
+register_type(bytes(), save_bytes)
 
 
 # The Pickler class and its utilities
@@ -681,18 +668,17 @@ cdef int simple_pack(Packer* p, module, name) except -1:
     p.dump(name)
 
 
-IF PY_MAJOR_VERSION > 2:
-    cdef int mapped_pack(Packer* p, module, name) except -1:
-        cdef PyObject *tmp
-        tmp = PyDict_GetItem(name_mapping_3to2, (module, name))
-        if tmp is not NULL:
-            module, name = <object>tmp
+cdef int mapped_pack(Packer* p, module, name) except -1:
+    cdef PyObject *tmp
+    tmp = PyDict_GetItem(name_mapping_3to2, (module, name))
+    if tmp is not NULL:
+        module, name = <object>tmp
 
-        tmp = PyDict_GetItem(import_mapping_3to2, module)
-        if tmp is not NULL:
-            module = <object>tmp
+    tmp = PyDict_GetItem(import_mapping_3to2, module)
+    if tmp is not NULL:
+        module = <object>tmp
 
-        simple_pack(p, module, name)
+    simple_pack(p, module, name)
 
 
 @cython.auto_pickle(False)
@@ -706,18 +692,14 @@ cdef class Pickler:
         public uint32_t last_refcount
 
     def __init__(
-            self, file=None, protocol=MAX_PROTOCOL_VERSION, with_refs=True):
-        IF PY_MAJOR_VERSION < 3:
-            self.protocol = 2
+        self, file=None, protocol=MAX_PROTOCOL_VERSION, with_refs=True):
+        if protocol < 0: protocol = MAX_PROTOCOL_VERSION
+        protocol = min(protocol, MAX_PROTOCOL_VERSION)
+        self.protocol = protocol
+        if protocol == 2:
+            self.pack_import_names = mapped_pack
+        else:
             self.pack_import_names = simple_pack
-        ELSE:
-            if protocol < 0: protocol = MAX_PROTOCOL_VERSION
-            protocol = min(protocol, MAX_PROTOCOL_VERSION)
-            self.protocol = protocol
-            if protocol == 2:
-                self.pack_import_names = mapped_pack
-            else:
-                self.pack_import_names = simple_pack
 
         self.packer = new Packer(self, protocol, with_refs)
         self.dispatch_table = dispatch_table
@@ -1051,20 +1033,19 @@ cdef object simple_find_class(module, name):
         return module
 
 
-IF PY_MAJOR_VERSION > 2:
-    cdef object mapped_find_class(module, name):
-        cdef:
-            PyObject* tmp
+cdef object mapped_find_class(module, name):
+    cdef:
+        PyObject* tmp
 
-        tmp = PyDict_GetItem(name_mapping_2to3, (module, name))
-        if tmp is not NULL:
-            module, name = <object>tmp
+    tmp = PyDict_GetItem(name_mapping_2to3, (module, name))
+    if tmp is not NULL:
+        module, name = <object>tmp
 
-        tmp = PyDict_GetItem(import_mapping_2to3, module)
-        if tmp is not NULL:
-            module = <object>tmp
+    tmp = PyDict_GetItem(import_mapping_2to3, module)
+    if tmp is not NULL:
+        module = <object>tmp
 
-        return simple_find_class(module, name)
+    return simple_find_class(module, name)
 
 
 @cython.auto_pickle(False)
@@ -1106,15 +1087,14 @@ cdef class Unpickler:
         del self.unpacker
 
     cdef int set_protocol(self, uint8_t protocol):
-        IF PY_MAJOR_VERSION > 2:
-            if protocol < 3:
-                self.default_find_class = mapped_find_class
-            else:
-                self.default_find_class = simple_find_class
-            if protocol < 4:
-                self.unpacker.min_string_size_for_ref = 5;
-            else:
-                self.unpacker.min_string_size_for_ref = 3;
+        if protocol < 3:
+            self.default_find_class = mapped_find_class
+        else:
+            self.default_find_class = simple_find_class
+        if protocol < 4:
+            self.unpacker.min_string_size_for_ref = 5;
+        else:
+            self.unpacker.min_string_size_for_ref = 3;
 
     cdef object unpack_import(self, size_t size):
         cdef:
