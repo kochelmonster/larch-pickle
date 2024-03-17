@@ -25,7 +25,8 @@ jobs:
       run: |
         echo "secrets.GITHUB_TOKEN ${{ secrets.GITHUB_TOKEN }}"
         echo "github.ref ${{ github.ref }}"
-        ls -lR /home/runner
+        ls -l /home/runner/work/larch-pickle/*.whl
+        ls -l /usr/share/miniconda/conda-bld/linux-64/larch*.bz2
     - uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
