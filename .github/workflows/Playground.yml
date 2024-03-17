@@ -21,9 +21,16 @@ jobs:
     - name: build package with conda
       run: |
         conda build --python=${{ matrix.python-version }} github-build
+    - name: Get release
+      id: get_release
+      uses: bruceadams/get-release@v1.3.2
+      env:
+        GITHUB_TOKEN: ${{ github.token }}        
     - name: echos
       run: |
-        echo "secrets.GITHUB_TOKEN ${{ secrets.GITHUB_TOKEN }}"
+        echo "uploadUrl1 ${{ steps.get_release.outputs.upload_url }}"
+        echo "uploadUrl2 ${{ github.event.release.upload_url }}"
+        echo "github.ref ${{ github.ref }}"
         echo "github.ref ${{ github.ref }}"
         ls -l /home/runner/work/larch-pickle/*.whl
         ls -l /usr/share/miniconda/conda-bld/linux-64/larch*.bz2
