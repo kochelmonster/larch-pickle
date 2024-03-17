@@ -23,7 +23,7 @@ jobs:
         conda build --python=${{ matrix.python-version }} github-build
     - name: Get release
       id: get_release
-      uses: jossef/action-latest-release-info@v1.2.2
+      uses: thebritican/fetch-latest-release@v1
       env:
         GITHUB_TOKEN: ${{ github.token }}        
     - name: echos
