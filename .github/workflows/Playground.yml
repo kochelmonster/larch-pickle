@@ -38,7 +38,7 @@ jobs:
         echo "runner_workspace ${{ runner.workspace }}"
         dir ${{ github.workspace }}
         dir ${{ runner.workspace }}
-        dir D:\a\larch-pickle"
+        dir D:\a\larch-pickle
     - uses: shogo82148/actions-upload-release-asset@v1
       with:
         upload_url: ${{ steps.get_release.outputs.upload_url }}
