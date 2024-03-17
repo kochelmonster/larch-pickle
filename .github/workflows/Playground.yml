@@ -32,10 +32,14 @@ jobs:
     - name: build package with conda
       run: |
         conda build --python=${{ matrix.python-version }} github-build
+    - name: debug2
+      run: |
+        echo "workspace ${{ github.workspace }}"
+        dir ${{ github.workspace }}
     - uses: shogo82148/actions-upload-release-asset@v1
       with:
         upload_url: ${{ steps.get_release.outputs.upload_url }}
-        asset_path: C:\Miniconda\conda-bld\*.whl
+        asset_path: ${{ github.workspace }}\*.whl
         overwrite: true
     - uses: shogo82148/actions-upload-release-asset@v1
       with:
