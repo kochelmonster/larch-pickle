@@ -39,7 +39,7 @@ def mdump(x, f):
 
 
 serializers = (
-    ('Pickle-3.9.0', pdumps, pickle.loads),
+    ('Pickle-3.12.2', pdumps, pickle.loads),
     ('json', json.dumps, json.loads),
     # ('cjson', cjson.encode, cjson.decode),
     ('ujson', ujson.dumps, ujson.loads),
