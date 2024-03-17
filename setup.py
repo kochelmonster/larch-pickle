@@ -4,7 +4,11 @@ import os
 from setuptools import setup, find_packages
 from contextlib import contextmanager
 from setuptools import Extension, setup
-from Cython.Build import cythonize
+try:
+    from Cython.Build import cythonize
+except Exception:
+    def cythonize(extension): 
+        return extension
 
 
 compile_debug = os.environ.get("LARCH_INSTALL_FOR_TEST")
@@ -123,7 +127,7 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 
 setup(
     name="larch-pickle",
-    version="1.4.2",
+    version="1.4.3",
     packages=find_packages(),
     exclude=["pickle.pyx"], # don't generate auto extension
 
