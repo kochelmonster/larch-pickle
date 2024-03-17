@@ -30,8 +30,8 @@ jobs:
     - uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: /home/runner/work/larch-pickle/*.whl
-        file_glob: true
+        file: /home/runner/work/larch-pickle/larch_pickle-1.4.3-cp312-cp312-linux_x86_64.whl
+        file_glob: false
         tag: ${{ github.ref }}
         overwrite: true
     - uses: svenstaro/upload-release-action@v2
