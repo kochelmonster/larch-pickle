@@ -12,7 +12,7 @@ jobs:
     steps:
     - name: Get release
       id: get_release
-      uses: thebritican/fetch-latest-release@v2
+      uses: thebritican/fetch-latest-release@v2.0.0
       env:
         GITHUB_TOKEN: ${{ github.token }}        
     - uses: actions/checkout@v4
