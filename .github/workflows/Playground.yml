@@ -17,9 +17,10 @@ jobs:
      env:
        GITHUB_TOKEN: ${{ github.token }}        
    - uses: actions/checkout@v4
-   - name: change xcode version
-     run: |
-       sudo xcode-select -switch /Applications/Xcode_13.3.app
+   - name: Xcode Select Version
+     uses: mobiledevops/xcode-select-version-action@v1
+     with:
+       xcode-select-version: 14.2
    - name: Add conda to system path
      run: |
        # $CONDA is an environment variable pointing to the root of the miniconda directory
