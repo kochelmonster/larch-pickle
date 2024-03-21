@@ -21,16 +21,9 @@ jobs:
      uses: mobiledevops/xcode-select-version-action@v1
      with:
        xcode-select-version: 14.2
-   - name: Add conda to system path
-     run: |
-       # $CONDA is an environment variable pointing to the root of the miniconda directory
-       echo $CONDA/Scripts >> $GITHUB_PATH
-   - name: Install dependencies
-     run: |
-       sudo conda install -y conda-build
    - name: build package with conda
      run: |
-       sudo --preserve-env=RUNNER_WORKSPACE conda build --debug --python=${{ matrix.python-version }} github-build
+       python setup.py build
    - uses: shogo82148/actions-upload-release-asset@v1
      with:
       upload_url: ${{ steps.get_release.outputs.upload_url }}
