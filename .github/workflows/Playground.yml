@@ -35,6 +35,8 @@ jobs:
      run: |
        pwd
        ls
+       ls `pwd`/boost/include
+       ls `pwd`/boost/include/boost
    - name: Install Python dependencies
      uses: py-actions/py-dependency-install@v4
      with:
