@@ -35,15 +35,17 @@ jobs:
      run: |
        pwd
        ls
-       ls boost
-       ls boost/include
+       echo "-------------------"
+       ls boost/boost
+       echo "------------------"
+       ls boost/boost/include
    - name: Install Python dependencies
      uses: py-actions/py-dependency-install@v4
      with:
        path: github-build/requirements.txt
    - name: build package
      run: |
-       python setup.py build_ext --include-dirs=`pwd`/boost/include
+       python setup.py build_ext --include-dirs=`pwd`/boost/boost/include
    - uses: shogo82148/actions-upload-release-asset@v1
      with:
       upload_url: ${{ steps.get_release.outputs.upload_url }}
