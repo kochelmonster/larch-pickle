@@ -23,7 +23,9 @@ jobs:
        xcode-select-version: 14.2
    - uses: actions/setup-python@v5
      with:
-       python-version: '3.12' 
+       python-version: '3.12'
+   - name: Install Python dependencies
+     uses: py-actions/py-dependency-install@v4
    - name: build package with conda
      run: |
        python setup.py build
