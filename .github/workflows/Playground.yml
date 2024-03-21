@@ -17,6 +17,13 @@ jobs:
      env:
        GITHUB_TOKEN: ${{ github.token }}        
    - uses: actions/checkout@v4
+     
+   - name: Install boost
+     uses: MarkusJx/install-boost@v2.4.5
+     id: install-boost
+     with:
+        boost_version: 1.84.0
+   
    - name: Xcode Select Version
      uses: mobiledevops/xcode-select-version-action@v1
      with:
