@@ -41,7 +41,7 @@ jobs:
        path: github-build/requirements.txt
    - name: build package with conda
      run: |
-       python setup.py build
+       CPATH=pwd`/boost/include python setup.py build
    - uses: shogo82148/actions-upload-release-asset@v1
      with:
       upload_url: ${{ steps.get_release.outputs.upload_url }}
