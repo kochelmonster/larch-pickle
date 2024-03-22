@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-       python-version: [3.9, "3.10", "3.11", "3.12"]
+       python-version: ["3.10", "3.11", "3.12"]
     steps:
     - name: Get release
       id: get_release
@@ -42,7 +42,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-       python-version: [3.9, "3.10", "3.12"]
+       python-version: ["3.10", "3.11", "3.12"]
     steps:
     - name: Get release
       id: get_release
@@ -88,34 +88,37 @@ jobs:
    runs-on: macos-latest
    strategy:
      matrix:
-      python-version: [3.9, "3.10", "3.12"]
+      python-version: ["3.10", "3.11", "3.12"]
 
    steps:
-   - uses: actions/checkout@v2
-   - name: change xcode version
-     run: |
-       sudo xcode-select -switch /Applications/Xcode_13.3.app
-   - name: Add conda to system path
-     run: |
-       # $CONDA is an environment variable pointing to the root of the miniconda directory
-       echo $CONDA/Scripts >> $GITHUB_PATH
-   - name: Install dependencies
-     run: |
-       sudo conda install -y conda-build
-   - name: build package with conda
-     run: |
-       sudo --preserve-env=RUNNER_WORKSPACE conda build --debug --python=${{ matrix.python-version }} github-build
-   - uses: svenstaro/upload-release-action@v2
+   - name: Get release
+     id: get_release
+     uses: thebritican/fetch-latest-release@v2.0.0
+     env:
+       GITHUB_TOKEN: ${{ github.token }}        
+   - uses: actions/checkout@v4
+   - name: Install boost
+     uses: MarkusJx/install-boost@v2.4.5
+     id: install-boost
      with:
-       repo_token: ${{ secrets.GITHUB_TOKEN }}
-       file: /Users/runner/work/larch-pickle/*.whl
-       file_glob: true
-       tag: ${{ github.ref }}
-       overwrite: true
-   - uses: svenstaro/upload-release-action@v2
+        boost_version: 1.84.0
+   - name: Xcode Select Version
+     uses: mobiledevops/xcode-select-version-action@v1
      with:
-       repo_token: ${{ secrets.GITHUB_TOKEN }}
-       file: /usr/local/miniconda/conda-bld/osx-64/larch*.bz2
-       file_glob: true
-       tag: ${{ github.ref }}
-       overwrite: true
+       xcode-select-version: 14.2
+   - uses: actions/setup-python@v5
+     with:
+       python-version: ${{ matrix.python-version }}
+   - name: Install Python dependencies
+     uses: py-actions/py-dependency-install@v4
+     with:
+       path: github-build/requirements.txt
+   - name: build package
+     run: |
+       python setup.py bdist_wheel build_ext --include-dirs=`pwd`/boost/boost/include
+   - uses: shogo82148/actions-upload-release-asset@v1
+     with:
+      upload_url: ${{ steps.get_release.outputs.upload_url }}
+      asset_path: /Users/runner/work/larch-pickle/larch-pickle/dist/*.whl
+      overwrite: true
+   
