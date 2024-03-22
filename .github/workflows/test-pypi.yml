@@ -22,7 +22,7 @@ jobs:
     - uses: dsaltares/fetch-gh-release-asset@master
       with:
         version: tags/${{ steps.get_release.outputs.tag_name }}
-        file: '.*[.](whl|zip|gz)$'
+        file: '.*[.](whl|zip|gz)'
         regex: true
 
     - name: Debug
