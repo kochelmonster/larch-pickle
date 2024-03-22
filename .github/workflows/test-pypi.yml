@@ -21,9 +21,9 @@ jobs:
     
     - uses: dsaltares/fetch-gh-release-asset@master
       with:
-        version: ${{ steps.get_release.outputs.id }}
+        version: tags/${{ steps.get_release.outputs.tag_name }}
         file: '*.whl'
-        path: "dist"
+        target: "dist"
 
     - name: Debug
       run: |
