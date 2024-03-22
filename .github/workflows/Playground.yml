@@ -41,7 +41,7 @@ jobs:
    - uses: shogo82148/actions-upload-release-asset@v1
      with:
       upload_url: ${{ steps.get_release.outputs.upload_url }}
-      asset_path: /Users/runner/work/larch-pickle/larch-pickle/dist/*.
+      asset_path: /Users/runner/work/larch-pickle/larch-pickle/dist/*.tar.gz
       overwrite: true
    
  
