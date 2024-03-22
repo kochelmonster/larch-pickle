@@ -39,6 +39,8 @@ jobs:
        ls boost/boost
        echo "------------------"
        ls boost/boost/include
+       echo "------------------"
+       python -c 'import sys; print("platform", sys.platform)'
    - name: Install Python dependencies
      uses: py-actions/py-dependency-install@v4
      with:
