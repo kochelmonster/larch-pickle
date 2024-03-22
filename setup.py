@@ -109,7 +109,7 @@ class Pickle(LarchExtension):
                 self.include_dirs.append(boost_dir)
 
         if self.platform == "darwin":
-            self.extra_compile_args.extend("-std=c++11")
+            self.extra_compile_args.append("-std=c++11")
         
         # disable cython typedef of uint8_t
         self.define_macros.extend([("_MSC_STDINT_H_", None)])
