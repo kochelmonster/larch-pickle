@@ -36,7 +36,7 @@ jobs:
       with:
         upload_url: ${{ steps.get_release.outputs.upload_url }}
         asset_path: /usr/share/miniconda/conda-bld/linux-64/larch*.bz2
-        overwrite: tr
+        overwrite: true
 
   build-windows:
     runs-on: windows-latest
