@@ -5,7 +5,7 @@ on: workflow_dispatch
 jobs:
 
   build-macos:
-   runs-on: macos-latest
+   runs-on: ubuntu-latest
    strategy:
      matrix:
       python-version: ["3.12"]
@@ -17,37 +17,18 @@ jobs:
      env:
        GITHUB_TOKEN: ${{ github.token }}        
    - uses: actions/checkout@v4
-     
-   - name: Install boost
-     uses: MarkusJx/install-boost@v2.4.5
-     id: install-boost
-     with:
-        boost_version: 1.84.0
-   
-   - name: Xcode Select Version
-     uses: mobiledevops/xcode-select-version-action@v1
-     with:
-       xcode-select-version: 14.2
+
    - uses: actions/setup-python@v5
      with:
        python-version: '3.12'
-   - name: Debug
-     run: |
-       pwd
-       ls
-       echo "-------------------"
-       ls boost/boost
-       echo "------------------"
-       ls boost/boost/include
-       echo "------------------"
-       python -c 'import sys; print("platform", sys.platform)'
+
    - name: Install Python dependencies
      uses: py-actions/py-dependency-install@v4
      with:
        path: github-build/requirements.txt
    - name: build package
      run: |
-       python setup.py bdist_wheel build_ext --include-dirs=`pwd`/boost/boost/include
+       python setup.py sdist
 
    - name: Debug
      run: |
@@ -60,7 +41,7 @@ jobs:
    - uses: shogo82148/actions-upload-release-asset@v1
      with:
       upload_url: ${{ steps.get_release.outputs.upload_url }}
-      asset_path: /Users/runner/work/larch-pickle/larch-pickle/dist/*.whl
+      asset_path: /Users/runner/work/larch-pickle/larch-pickle/dist/*.
       overwrite: true
    
  
