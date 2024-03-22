@@ -47,16 +47,11 @@ jobs:
        path: github-build/requirements.txt
    - name: build package
      run: |
-       python setup.py build_ext --include-dirs=`pwd`/boost/boost/include
+       python setup.py bdist_wheel build_ext --include-dirs=`pwd`/boost/boost/include
    - uses: shogo82148/actions-upload-release-asset@v1
      with:
       upload_url: ${{ steps.get_release.outputs.upload_url }}
-      asset_path: /Users/runner/work/larch-pickle/*.whl
+      asset_path: /Users/runner/work/larch-pickle/dist/*.whl
       overwrite: true
-   - uses: shogo82148/actions-upload-release-asset@v1
-     with:
-      upload_url: ${{ steps.get_release.outputs.upload_url }}
-      asset_path: /usr/local/miniconda/conda-bld/osx-64/larch*.bz2
-      overwrite: true
-
+   
  
