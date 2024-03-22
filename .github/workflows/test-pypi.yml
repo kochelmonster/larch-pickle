@@ -26,16 +26,15 @@ jobs:
         regex: true
         target: "dist"
 
-    - uses: dsaltares/fetch-gh-release-asset@master
-      with:
-        version: tags/${{ steps.get_release.outputs.tag_name }}
-        file: '.*[.]zip$'
-        regex: true
-        target: "dist"
-
     - name: Debug
       run: |
        pwd
        ls 
        echo "------------------"
-       
+
+    - name: Publish distribution 📦 to TestPyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        repository-url: https://test.pypi.org/legacy/
+        verbose: true
+        skip-existing: true
