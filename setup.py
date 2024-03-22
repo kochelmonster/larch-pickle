@@ -108,6 +108,9 @@ class Pickle(LarchExtension):
                 boost_dir = os.path.join(boost_root, boost_dir)
                 self.include_dirs.append(boost_dir)
 
+        if self.platform == "darwin":
+            self.extra_compile_args.extend("-std=c++11")
+        
         # disable cython typedef of uint8_t
         self.define_macros.extend([("_MSC_STDINT_H_", None)])
 
