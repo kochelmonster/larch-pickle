@@ -24,6 +24,7 @@ jobs:
         version: tags/${{ steps.get_release.outputs.tag_name }}
         file: '.*[.]whl'
         regex: true
+        target: "."
 
     - name: Debug
       run: |
