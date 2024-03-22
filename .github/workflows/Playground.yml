@@ -3,35 +3,58 @@ name: Playground
 on: workflow_dispatch
 
 jobs:
- build-linux:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-       python-version: [3.9, "3.10", "3.11", "3.12"]
 
-    steps:
-    - uses: actions/checkout@v2
-    - name: Add conda to system path
-      run: |
-        # $CONDA is an environment variable pointing to the root of the miniconda directory
-        echo $CONDA/Scripts >> $GITHUB_PATH
-    - name: Install dependencies
-      run: |
-        conda install -y conda-build
-    - name: build package with conda
-      run: |
-        conda build --python=${{ matrix.python-version }} github-build
-    - uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: /home/runner/work/larch-pickle/*.whl
-        file_glob: true
-        tag: ${{ github.ref }}
-        overwrite: true
-    - uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: /usr/share/miniconda/conda-bld/linux-64/larch*.bz2
-        file_glob: true
-        tag: ${{ github.ref }}
-        overwrite: true
+  build-macos:
+   runs-on: macos-latest
+   strategy:
+     matrix:
+      python-version: ["3.12"]
+
+   steps:
+   - name: Get release
+     id: get_release
+     uses: thebritican/fetch-latest-release@v2.0.0
+     env:
+       GITHUB_TOKEN: ${{ github.token }}        
+   - uses: actions/checkout@v4
+     
+   - name: Install boost
+     uses: MarkusJx/install-boost@v2.4.5
+     id: install-boost
+     with:
+        boost_version: 1.84.0
+   
+   - name: Xcode Select Version
+     uses: mobiledevops/xcode-select-version-action@v1
+     with:
+       xcode-select-version: 14.2
+   - uses: actions/setup-python@v5
+     with:
+       python-version: '3.12'
+   - name: Debug
+     run: |
+       pwd
+       ls
+       echo "-------------------"
+       ls boost/boost
+       echo "------------------"
+       ls boost/boost/include
+   - name: Install Python dependencies
+     uses: py-actions/py-dependency-install@v4
+     with:
+       path: github-build/requirements.txt
+   - name: build package
+     run: |
+       python setup.py build_ext --include-dirs=`pwd`/boost/boost/include
+   - uses: shogo82148/actions-upload-release-asset@v1
+     with:
+      upload_url: ${{ steps.get_release.outputs.upload_url }}
+      asset_path: /Users/runner/work/larch-pickle/*.whl
+      overwrite: true
+   - uses: shogo82148/actions-upload-release-asset@v1
+     with:
+      upload_url: ${{ steps.get_release.outputs.upload_url }}
+      asset_path: /usr/local/miniconda/conda-bld/osx-64/larch*.bz2
+      overwrite: true
+
+ 
