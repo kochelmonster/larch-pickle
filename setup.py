@@ -1,7 +1,7 @@
 import sys
 import os.path
 import os
-from setuptools import setup, find_packages
+from setuptools import setup, find_namespace_packages
 from contextlib import contextmanager
 from setuptools import Extension, setup
 try:
@@ -130,8 +130,8 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 
 setup(
     name="larch-pickle",
-    version="1.4.3",
-    packages=find_packages(),
+    version="1.4.4",
+    packages=find_namespace_packages(where="./", include=["larch.pickle"]),
     exclude=["pickle.pyx"], # don't generate auto extension
 
     # metadata for upload to PyPI
@@ -140,7 +140,6 @@ setup(
     # Project uses reStructuredText, so ensure that the docutils get
     # installed or upgraded on the target machine
     include_package_data=False,
-    namespace_packages=['larch'],
     zip_safe=False,
 
     license="BSD",
