@@ -33,15 +33,6 @@ jobs:
         run: |
           python setup.py bdist_wheel
 
-      - name: Show
-        run: |
-          echo "dist"
-          echo "-----"
-          ls dist/*.whl
-          echo "pwd"
-          echo "-----"
-          pwd
-
       - name: Find first wheel file
         id: find_wheel
         run: |
@@ -65,6 +56,8 @@ jobs:
 
       - name: Upload to release draft
         uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_UPLOAD }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
           asset_path: ${{ env.wheel }}
