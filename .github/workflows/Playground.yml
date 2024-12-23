@@ -21,11 +21,11 @@ jobs:
       - name: Install system dependencies
         run: |
           curl -L -o boost.zip https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.zip
-          tar -xf boost.zip -C D:/local
-          setx BOOST_ROOT D:/local/boost_1_75_0
-          setx PATH "%PATH%;D:/local/boost_1_75_0"
+          tar -xf boost.zip -C C:/local
+          setx BOOST_ROOT C:/local/boost_1_75_0
+          setx PATH "%PATH%;C:/local/boost_1_75_0"
       
       - name: Show Boost directory content
         run: |
-          dir D:\local
+          dir C:\local
 
