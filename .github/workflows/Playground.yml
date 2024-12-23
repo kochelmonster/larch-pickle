@@ -3,10 +3,11 @@ name: Playground
 on: workflow_dispatch
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
+  build-linux:
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        os: [ubuntu-latest]
         python-version: ['3.12']
 
     steps:
@@ -20,12 +21,27 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          curl -L -o boost.zip https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.zip
-          mkdir -p C:\local
-          tar -xf boost.zip -C C:\local
-          setx BOOST_ROOT C:\local\boost_1_75_0
-          setx PATH "%PATH%;C:\local\boost_1_75_0"
-      
-      - name: Show Boost directory content
+          sudo apt-get update
+          sudo apt-get install -y build-essential libboost-all-dev
+
+      - name: Install Python dependencies
         run: |
-          dir C:\local\boost_1_75_0\boost
+          python -m pip install --upgrade pip
+          pip install cython wheel setuptools
+
+      - name: Build Wheel
+        run: |
+          python setup.py bdist_wheel
+
+      - name: Upload Wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: larch-pickle-wheel-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: dist/*.whl
+          if-no-files-found: error
+
+      - name: Show
+        run: |
+          ls 
+          echo "dist"
+          ls dist
