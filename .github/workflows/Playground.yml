@@ -33,18 +33,14 @@ jobs:
         run: |
           python setup.py bdist_wheel
 
-      - name: Upload Wheel
-        uses: actions/upload-artifact@v4
-        with:
-          name: larch-pickle-wheel-${{ matrix.os }}-py${{ matrix.python-version }}
-          path: dist/*.whl
-          if-no-files-found: error
-
       - name: Show
         run: |
           echo "dist"
           echo "-----"
-          ls dist
+          ls dist/*.whl
+          echo "pwd"
+          echo "-----"
+          pwd
 
       - name: Get latest release draft
         id: get_release
