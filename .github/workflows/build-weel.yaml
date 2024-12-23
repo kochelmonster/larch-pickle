@@ -3,11 +3,11 @@ name: Build Wheel
 on: workflow_dispatch
 
 jobs:
-  build:
+  build-linux:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]
         python-version: ['3.12']
 
     steps:
@@ -21,12 +21,45 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          if [ "$RUNNER_OS" == "Linux" ]; then
-            sudo apt-get update
-            sudo apt-get install -y build-essential libboost-all-dev
-          elif [ "$RUNNER_OS" == "macOS" ]; then
-            brew install boost
-            brew install gcc
+          sudo apt-get update
+          sudo apt-get install -y build-essential libboost-all-dev
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install cython wheel setuptools
+
+      - name: Build Wheel
+        run: |
+          python setup.py bdist_wheel
+
+      - name: Upload Wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: larch-pickle-wheel-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: dist/*.whl
+          if-no-files-found: error
+
+  build-macos:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest]
+        python-version: ['3.12']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install system dependencies
+        run: |
+          brew install boost
+          brew install gcc
 
       - name: Install Python dependencies
         run: |
@@ -37,9 +70,6 @@ jobs:
         env:
           BOOST_DIR: /usr/local/opt/boost
         run: |
-          if [ "$RUNNER_OS" == "macOS" ]; then
-            export BOOST_DIR=/usr/local/opt/boost
-          fi
           python setup.py bdist_wheel
 
       - name: Upload Wheel
@@ -78,6 +108,8 @@ jobs:
           pip install cython wheel setuptools
 
       - name: Build Wheel
+        env:
+          BOOST_DIR: C:/local/boost_1_75_0
         run: |
           python setup.py bdist_wheel
 

@@ -38,6 +38,7 @@ class LarchExtension(Extension):
 
         self.include_dirs.append(self.dbase)
         self.include_dirs = list(set(self.include_dirs))
+        print("include_dirs", self.include_dirs)
         self.libraries = list(set(self.libraries))
         self.library_dirs = list(set(self.library_dirs))
         self.define_macros = list(set(self.define_macros))
@@ -92,6 +93,7 @@ class Pickle(LarchExtension):
         boost_dir = os.environ.get("BOOST_DIR")
         if boost_dir is not None:
             self.include_dirs.append(os.path.join(boost_dir, "include"))
+            print("boost_dir", repr(boost_dir))
 
         elif self.platform == "win32" and not os.environ.get("CONDA_PREFIX"):
             boost_root = "c:\\local"
