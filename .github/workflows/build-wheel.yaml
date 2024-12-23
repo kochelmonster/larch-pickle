@@ -40,6 +40,29 @@ jobs:
           path: dist/*.whl
           if-no-files-found: error
 
+      - name: Get latest release draft
+        id: get_release
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: releases } = await github.repos.listReleases({
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+            const draftRelease = releases.find(release => release.draft);
+            if (!draftRelease) {
+              throw new Error('No draft release found');
+            }
+            return draftRelease.id;
+
+      - name: Upload to release draft
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: dist/*.whl
+          asset_name: larch-pickle-wheel-${{ matrix.os }}-py${{ matrix.python-version }}
+          asset_content_type: application/zip
+
   build-macos:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -78,7 +101,30 @@ jobs:
           name: larch-pickle-wheel-${{ matrix.os }}-py${{ matrix.python-version }}
           path: dist/*.whl
           if-no-files-found: error
-  
+
+      - name: Get latest release draft
+        id: get_release
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: releases } = await github.repos.listReleases({
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+            const draftRelease = releases.find(release => release.draft);
+            if (!draftRelease) {
+              throw new Error('No draft release found');
+            }
+            return draftRelease.id;
+
+      - name: Upload to release draft
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: dist/*.whl
+          asset_name: larch-pickle-wheel-${{ matrix.os }}-py${{ matrix.python-version }}
+          asset_content_type: application/zip
+
   build-windows:
     runs-on: windows-latest
     strategy:
@@ -118,3 +164,26 @@ jobs:
           name: larch-pickle-wheel-${{ runner.os }}-py${{ matrix.python-version }}
           path: dist/*.whl
           if-no-files-found: error
+
+      - name: Get latest release draft
+        id: get_release
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: releases } = await github.repos.listReleases({
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+            const draftRelease = releases.find(release => release.draft);
+            if (!draftRelease) {
+              throw new Error('No draft release found');
+            }
+            return draftRelease.id;
+
+      - name: Upload to release draft
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: dist/*.whl
+          asset_name: larch-pickle-wheel-${{ runner.os }}-py${{ matrix.python-version }}
+          asset_content_type: application/zip
