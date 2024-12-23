@@ -7,7 +7,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest]
         python-version: ['3.10', '3.12']
 
     steps:
@@ -24,13 +24,47 @@ jobs:
           if [ "$RUNNER_OS" == "Linux" ]; then
             sudo apt-get update
             sudo apt-get install -y build-essential libboost-all-dev
-          elif [ "$RUNNER_OS" == "Windows" ]; then
-            choco install visualstudio2022buildtools -y
-            choco install boost-msvc-2022 --version=1.75.0 -y
           elif [ "$RUNNER_OS" == "macOS" ]; then
             brew install boost
             brew install gcc
           fi
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install cython wheel
+
+      - name: Build Wheel
+        run: |
+          python setup.py bdist_wheel
+
+      - name: Upload Wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: larch-pickle-wheel-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: dist/*.whl
+          if-no-files-found: error
+  
+  build-windows:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest]
+        python-version: ['3.10', '3.12']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install system dependencies
+        run: |
+          choco install visualstudio2022buildtools -y
+          choco install boost-msvc-2022 --version=1.75.0 -y
 
       - name: Install Python dependencies
         run: |
