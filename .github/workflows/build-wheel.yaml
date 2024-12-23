@@ -45,15 +45,15 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const { data: releases } = await github.repos.listReleases({
+            const releases = await github.rest.repos.listReleases({
               owner: context.repo.owner,
               repo: context.repo.repo
             });
-            const draftRelease = releases.find(release => release.draft);
+            const draftRelease = releases.data.find(release => release.draft);
             if (!draftRelease) {
               throw new Error('No draft release found');
             }
-            return draftRelease.id;
+            core.setOutput('upload_url', draftRelease.upload_url);
 
       - name: Upload to release draft
         uses: actions/upload-release-asset@v1
@@ -107,15 +107,15 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const { data: releases } = await github.repos.listReleases({
+            const releases = await github.rest.repos.listReleases({
               owner: context.repo.owner,
               repo: context.repo.repo
             });
-            const draftRelease = releases.find(release => release.draft);
+            const draftRelease = releases.data.find(release => release.draft);
             if (!draftRelease) {
               throw new Error('No draft release found');
             }
-            return draftRelease.id;
+            core.setOutput('upload_url', draftRelease.upload_url);
 
       - name: Upload to release draft
         uses: actions/upload-release-asset@v1
@@ -170,15 +170,15 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const { data: releases } = await github.repos.listReleases({
+            const releases = await github.rest.repos.listReleases({
               owner: context.repo.owner,
               repo: context.repo.repo
             });
-            const draftRelease = releases.find(release => release.draft);
+            const draftRelease = releases.data.find(release => release.draft);
             if (!draftRelease) {
               throw new Error('No draft release found');
             }
-            return draftRelease.id;
+            core.setOutput('upload_url', draftRelease.upload_url);
 
       - name: Upload to release draft
         uses: actions/upload-release-asset@v1
