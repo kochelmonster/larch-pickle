@@ -79,6 +79,8 @@ jobs:
           pip install cython wheel setuptools
 
       - name: Build Wheel
+        env:
+          BOOST_DIR: C:/local/boost_1_75_0
         run: |
           python setup.py bdist_wheel
 
