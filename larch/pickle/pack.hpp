@@ -427,7 +427,7 @@ struct Packer {
     try {
       dump(o);
     }
-    catch(PythonError) {
+    catch(PythonError&) {
       return -1;
     }
     catch(...) {
