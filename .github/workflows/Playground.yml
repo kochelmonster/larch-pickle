@@ -38,6 +38,7 @@ jobs:
         run: |
           first_wheel=$(ls dist/*.whl | head -n 1)
           echo "wheel=$first_wheel" >> $GITHUB_ENV
+          echo "wheel_base=$(basename $first_wheel)" >> $GITHUB_ENV
 
       - name: Get latest release draft
         id: get_release
@@ -62,4 +63,5 @@ jobs:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
           asset_path: ${{ env.wheel }}
           asset_name: larch-pickle-wheel-${{ matrix.os }}-py${{ matrix.python-version }}
+          asset_name: ${{ env.wheel_base }}
           asset_content_type: application/zip
