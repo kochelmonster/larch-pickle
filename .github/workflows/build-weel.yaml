@@ -21,13 +21,13 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          if [[ "$RUNNER_OS" == "Linux" ]]; then
+          if [ "$RUNNER_OS" == "Linux" ]; then
             sudo apt-get update
             sudo apt-get install -y build-essential libboost-all-dev
-          elif [[ "$RUNNER_OS" == "Windows" ]]; then
+          elif [ "$RUNNER_OS" == "Windows" ]; then
             choco install visualstudio2022buildtools -y
             choco install boost-msvc-2022 --version=1.75.0 -y
-          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+          elif [ "$RUNNER_OS" == "macOS" ]; then
             brew install boost
             brew install gcc
           fi
