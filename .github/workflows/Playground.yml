@@ -42,6 +42,29 @@ jobs:
 
       - name: Show
         run: |
-          ls 
           echo "dist"
+          echo "-----"
           ls dist
+
+      - name: Get latest release draft
+        id: get_release
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const releases = await github.rest.repos.listReleases({
+              owner: context.repo.owner,
+              repo: context.repo.repo
+            });
+            const draftRelease = releases.data.find(release => release.draft);
+            if (!draftRelease) {
+              throw new Error('No draft release found');
+            }
+            core.setOutput('upload_url', draftRelease.upload_url);
+
+      - name: Upload to release draft
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: dist/*.whl
+          asset_name: larch-pickle-wheel-${{ matrix.os }}-py${{ matrix.python-version }}
+          asset_content_type: application/zip          
