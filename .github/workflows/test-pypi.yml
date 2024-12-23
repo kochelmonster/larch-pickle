@@ -7,8 +7,8 @@ jobs:
 
     environment:
       name: testpypi
-      # url: https://test.pypi.org/p/larch-pickle
-      url: https://pypi.org/p/larch-pickle
+      url: https://test.pypi.org/p/larch-pickle
+      # url: https://pypi.org/p/larch-pickle
 
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
