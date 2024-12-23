@@ -109,7 +109,7 @@ jobs:
 
       - name: Build Wheel
         env:
-          BOOST_DIR: C:\local\boost_1_75_0
+          BOOST_DIR: C:\local\boost_1_75_0\boost
         run: |
           python setup.py bdist_wheel
 
