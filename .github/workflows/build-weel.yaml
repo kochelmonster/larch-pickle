@@ -7,7 +7,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest]  # macos-latest
+        os: [ubuntu-latest, macos-latest]
         python-version: ['3.10', '3.12']
 
     steps:
@@ -46,10 +46,9 @@ jobs:
           if-no-files-found: error
   
   build-windows:
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
     strategy:
       matrix:
-        os: [windows-latest]
         python-version: ['3.10', '3.12']
 
     steps:
@@ -64,7 +63,10 @@ jobs:
       - name: Install system dependencies
         run: |
           choco install visualstudio2022buildtools -y
-          choco install boost-msvc-2022 --version=1.75.0 -y
+          curl -L -o boost.zip https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.zip
+          tar -xf boost.zip -C C:/local
+          setx BOOST_ROOT C:/local/boost_1_75_0
+          setx PATH "%PATH%;C:/local/boost_1_75_0"
 
       - name: Install Python dependencies
         run: |
@@ -78,6 +80,6 @@ jobs:
       - name: Upload Wheel
         uses: actions/upload-artifact@v4
         with:
-          name: larch-pickle-wheel-${{ matrix.os }}-py${{ matrix.python-version }}
+          name: larch-pickle-wheel-${{ runner.os }}-py${{ matrix.python-version }}
           path: dist/*.whl
           if-no-files-found: error
