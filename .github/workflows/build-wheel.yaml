@@ -33,12 +33,12 @@ jobs:
         run: |
           python setup.py bdist_wheel
 
-      - name: Upload Wheel
-        uses: actions/upload-artifact@v4
-        with:
-          name: larch-pickle-wheel-${{ matrix.os }}-py${{ matrix.python-version }}
-          path: dist/*.whl
-          if-no-files-found: error
+      - name: Find first wheel file
+        id: find_wheel
+        run: |
+          first_wheel=$(ls dist/*.whl | head -n 1)
+          echo "wheel=$first_wheel" >> $GITHUB_ENV
+          echo "wheel_base=$(basename $first_wheel)" >> $GITHUB_ENV
 
       - name: Get latest release draft
         id: get_release
@@ -57,12 +57,14 @@ jobs:
 
       - name: Upload to release draft
         uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_UPLOAD }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: dist/*.whl
-          asset_name: larch-pickle-wheel-${{ matrix.os }}-py${{ matrix.python-version }}
+          asset_path: ${{ env.wheel }}
+          asset_name: ${{ env.wheel_base }}
           asset_content_type: application/zip
-
+          
   build-macos:
     runs-on: ${{ matrix.os }}
     strategy:
