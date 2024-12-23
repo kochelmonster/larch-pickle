@@ -68,7 +68,7 @@ jobs:
 
       - name: Build Wheel
         env:
-          BOOST_DIR: /usr/local/opt/boost
+          BOOST_DIR: $(brew --prefix boost)
         run: |
           python setup.py bdist_wheel
 
