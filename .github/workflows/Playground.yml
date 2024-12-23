@@ -1,4 +1,4 @@
-name: Playground
+name: Build Wheel
 
 on: workflow_dispatch
 
@@ -7,45 +7,43 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-       python-version: ["3.12"]
+        python-version: ['3.12']
+
     steps:
-    - name: Get release
-      id: get_release
-      uses: thebritican/fetch-latest-release@v2.0.0
-      env:
-        GITHUB_TOKEN: ${{ github.token }}        
-    - uses: actions/checkout@v4
-    - name: debug
-      run: |
-        gci env:* | sort-object name
-    - name: Add conda to system path
-      run: |
-        # $env:CONDA is an environment variable pointing to the root of the miniconda directory
-        echo $env:CONDA\Scripts >> $env:GITHUB_PATH
-    - name: Conda update
-      run: |
-        conda update --all -y
-    - name: Install dependencies
-      run: |
-        conda install -y conda-build
-    - name: build package with conda
-      run: |
-        conda build --python=${{ matrix.python-version }} github-build
-      shell: cmd
-    - name: debug2
-      run: |
-        echo "workspace ${{ github.workspace }}"
-        echo "runner_workspace ${{ runner.workspace }}"
-        dir ${{ github.workspace }}
-        dir ${{ runner.workspace }}
-        dir D:\a\larch-pickle
-    - uses: shogo82148/actions-upload-release-asset@v1
-      with:
-        upload_url: ${{ steps.get_release.outputs.upload_url }}
-        asset_path: ${{ runner.workspace }}\*.whl
-        overwrite: true
-    - uses: shogo82148/actions-upload-release-asset@v1
-      with:
-        upload_url: ${{ steps.get_release.outputs.upload_url }}
-        asset_path: C:\Miniconda\conda-bld\win-64\larch*.bz2
-        overwrite: true
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install system dependencies
+        run: |
+          choco install visualstudio2022buildtools -y
+          curl -L -o boost.zip https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.zip
+          tar -xf boost.zip -C C:/local
+          setx BOOST_ROOT C:/local/boost_1_75_0
+          setx PATH "%PATH%;C:/local/boost_1_75_0"
+      
+      - name: Show Boost directory content
+        run: |
+          dir C:\local\boost_1_75_0
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install cython wheel setuptools
+
+      - name: Build Wheel
+        env:
+          BOOST_DIR: C:\local\boost_1_75_0\boost
+        run: |
+          python setup.py bdist_wheel
+
+      - name: Upload Wheel
+        uses: actions/upload-artifact@v4
+        with:
+          name: larch-pickle-wheel-${{ runner.os }}-py${{ matrix.python-version }}
+          path: dist/*.whl
+          if-no-files-found: error
