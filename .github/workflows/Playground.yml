@@ -61,7 +61,7 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: dist/larch-pickle-wheel-${{ matrix.os }}-py${{ matrix.python-version }}.whl
+          asset_path: dist/larch_pickle-1.4.4-cp312-cp312-linux_x86_64.whl
           asset_name: larch-pickle-wheel-${{ matrix.os }}-py${{ matrix.python-version }}
           asset_content_type: application/zip
 
