@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: ['3.10', '3.12']
+        python-version: ['3.12']
 
     steps:
       - name: Checkout code
@@ -27,7 +27,6 @@ jobs:
           elif [ "$RUNNER_OS" == "macOS" ]; then
             brew install boost
             brew install gcc
-          fi
 
       - name: Install Python dependencies
         run: |
@@ -35,7 +34,12 @@ jobs:
           pip install cython wheel setuptools
 
       - name: Build Wheel
+        env:
+          BOOST_DIR: /usr/local/opt/boost
         run: |
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            export BOOST_DIR=/usr/local/opt/boost
+          fi
           python setup.py bdist_wheel
 
       - name: Upload Wheel
@@ -49,7 +53,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python-version: ['3.10', '3.12']
+        python-version: ['3.12']
 
     steps:
       - name: Checkout code
