@@ -64,7 +64,7 @@ jobs:
           asset_path: ${{ env.wheel }}
           asset_name: ${{ env.wheel_base }}
           asset_content_type: application/zip
-          
+
   build-macos:
     runs-on: ${{ matrix.os }}
     strategy:
@@ -104,7 +104,7 @@ jobs:
           echo "wheel=$first_wheel" >> $GITHUB_ENV
           echo "wheel_base=$(basename $first_wheel)" >> $GITHUB_ENV
 
-       - name: Get latest release draft
+      - name: Get latest release draft
         id: get_release
         uses: actions/github-script@v6
         with:
@@ -128,7 +128,7 @@ jobs:
           asset_path: ${{ env.wheel }}
           asset_name: ${{ env.wheel_base }}
           asset_content_type: application/zip
- 
+
   build-windows:
     runs-on: windows-latest
     strategy:
@@ -165,9 +165,9 @@ jobs:
       - name: Find first wheel file
         id: find_wheel
         run: |
-          first_wheel=$(dir dist\*.whl | select -first 1)
-          echo "wheel=$first_wheel" >> $env:GITHUB_ENV
-          echo "wheel_base=$(Split-Path -Leaf $first_wheel)" >> $env:GITHUB_ENV
+          $first_wheel = Get-ChildItem -Path dist\*.whl | Select-Object -First 1
+          echo "wheel=$first_wheel" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "wheel_base=$(Split-Path -Leaf $first_wheel)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Get latest release draft
         id: get_release
@@ -193,4 +193,3 @@ jobs:
           asset_path: ${{ env.wheel }}
           asset_name: ${{ env.wheel_base }}
           asset_content_type: application/zip
- 
