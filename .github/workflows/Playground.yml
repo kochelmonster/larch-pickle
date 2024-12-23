@@ -28,4 +28,4 @@ jobs:
       
       - name: Show Boost directory content
         run: |
-          dir C:\local\boost_1_75_0
+          dir C:\local\boost_1_75_0\boost
