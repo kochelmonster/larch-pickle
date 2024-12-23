@@ -131,7 +131,7 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 setup(
     name="larch-pickle",
     version="1.4.4",
-    packages=find_namespace_packages(where="./", include=["larch.pickle"]),
+    packages=find_namespace_packages(where=".", include=["larch.pickle"]),
     exclude=["pickle.pyx"], # don't generate auto extension
 
     # metadata for upload to PyPI
