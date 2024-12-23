@@ -27,6 +27,7 @@ jobs:
           elif [ "$RUNNER_OS" == "macOS" ]; then
             brew install boost
             brew install gcc
+          fi
 
       - name: Install Python dependencies
         run: |
