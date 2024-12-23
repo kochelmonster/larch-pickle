@@ -179,7 +179,7 @@ struct Unpacker {
     try {
       return load();
     }
-    catch(PythonError) {
+    catch(PythonError&) {
       return NULL;
     }
     catch(...) {
