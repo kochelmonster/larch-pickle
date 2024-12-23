@@ -33,12 +33,21 @@ jobs:
         run: |
           python setup.py bdist_wheel
 
+      - name: Show
+        run: |
+          echo "dist"
+          echo "-----"
+          ls dist/*.whl
+          echo "pwd"
+          echo "-----"
+          pwd
+
       - name: Find first wheel file
         id: find_wheel
         run: |
           first_wheel=$(ls dist/*.whl | head -n 1)
-          echo "::set-output name=wheel::$first_wheel"
-          
+          echo "wheel=$first_wheel" >> $GITHUB_ENV
+
       - name: Get latest release draft
         id: get_release
         uses: actions/github-script@v6
@@ -58,8 +67,6 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ${{ steps.find_wheel.outputs.wheel }}
+          asset_path: ${{ env.wheel }}
           asset_name: larch-pickle-wheel-${{ matrix.os }}-py${{ matrix.python-version }}
           asset_content_type: application/zip
-
-
