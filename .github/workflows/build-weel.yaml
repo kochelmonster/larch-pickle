@@ -67,9 +67,9 @@ jobs:
           pip install cython wheel setuptools
 
       - name: Build Wheel
-        env:
-          BOOST_DIR: $(brew --prefix boost)
         run: |
+          BOOST_DIR=$(brew --prefix boost)
+          export BOOST_DIR
           python setup.py bdist_wheel
 
       - name: Upload Wheel
