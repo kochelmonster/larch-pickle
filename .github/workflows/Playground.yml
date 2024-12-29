@@ -23,12 +23,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install cibuildwheel
 
+      - name: Set CIBW_BUILD_VER
+        run: echo "CIBW_BUILD_VER=cp${{ matrix.python-version//. }}-manylinux_x86_64" >> $GITHUB_ENV
+
       - name: Build wheel using cibuildwheel
         env:
           CIBW_PLATFORM: linux
-          CIBW_BUILD_VER: ${{ matrix.python-version }}
-        run: |
-          cibuildwheel --output-dir wheelhouse --build cp${{ env.CIBW_BUILD_VER.replace('.', '') }}-manylinux_x86_64
+        run: cibuildwheel --output-dir wheelhouse --build ${{ env.CIBW_BUILD_VER }}
 
       - name: Upload Wheel
         uses: actions/upload-artifact@v4
