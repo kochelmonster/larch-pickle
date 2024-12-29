@@ -62,8 +62,11 @@ jobs:
             }
             core.setOutput('upload_url', draftRelease.upload_url);
 
-      - name: Upload files to upload_url
-        run: |
-          for file in artefacts/*; do
-            curl -X POST -H "Authorization: token ${{ secrets.PAT_UPLOAD }}" -H "Content-Type: multipart/form-data" -F "file=@$file" "${{ steps.get_release.outputs.upload_url }}?name=$(basename \"$file\")"
-          done
+      - name: Upload artifacts and release assets
+        uses: nanoufo/action-upload-artifacts-and-release-assets@v2
+        with:
+          path: artefacts/*
+          upload-release-files: true
+          release-upload-url: ${{ steps.get_release.outputs.upload_url }}
+          github-token: ${{ secrets.PAT_UPLOAD }}
+
