@@ -65,5 +65,5 @@ jobs:
       - name: Upload files to upload_url
         run: |
           for file in artefacts/*; do
-            curl -X POST -H "Authorization: token ${{ secrets.PAT_UPLOAD }}" -H "Content-Type: application/octet-stream" --data-binary @"$file" "${{ steps.get_release.outputs.upload_url }}?name=$(basename "$file")"
+            curl -X POST -H "Authorization: token ${{ secrets.PAT_UPLOAD }}" -H "Content-Type: multipart/form-data" -F "file=@$file" "${{ steps.get_release.outputs.upload_url }}?name=$(basename "$file")"
           done
