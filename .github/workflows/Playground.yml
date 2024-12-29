@@ -37,7 +37,7 @@ jobs:
             tar -xzf boost_1_75_0.tar.gz
             cd boost_1_75_0
             ./bootstrap.sh
-            ./b2 headers
+            ./b2 headers --prefix=/usr/local/include/boost
             export BOOST_DIR=/usr/local/include/boost
             ls /usr/local/include/boost
         run: cibuildwheel --output-dir wheelhouse
