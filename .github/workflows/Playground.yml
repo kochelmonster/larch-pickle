@@ -40,8 +40,9 @@ jobs:
             echo "install headers"
             pwd
             ./b2 headers
-            export BOOST_DIR=/boost_1_75_0/include/boost
-            ls /boost_1_75_0
+            export BOOST_DIR=$(pwd)/include/boost
+            echo "BOOST DIR=$(BOOST_DIR)"
+            ls $(BOOST_DIR)
         run: cibuildwheel --output-dir wheelhouse
 
       - name: Upload Wheel
