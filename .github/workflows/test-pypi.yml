@@ -7,8 +7,8 @@ jobs:
 
     environment:
       name: testpypi
-      # url: https://test.pypi.org/p/larch-pickle
-      url: https://pypi.org/p/larch-pickle
+      url: https://test.pypi.org/p/larch-pickle
+      # url: https://pypi.org/p/larch-pickle
 
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
@@ -40,6 +40,6 @@ jobs:
     - name: Publish distribution 📦 to TestPyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        # repository-url: https://test.pypi.org/legacy/
+        repository-url: https://test.pypi.org/legacy/
         verbose: true
         skip-existing: true
