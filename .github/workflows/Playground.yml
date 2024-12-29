@@ -31,7 +31,14 @@ jobs:
           CIBW_PLATFORM: linux
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_BUILD: cp312-*
-          CIBW_BEFORE_BUILD: yum install -y boost-devel; ls /usr/include/boost
+          CIBW_BEFORE_BUILD: |
+            yum install -y boost-devel
+            wget -O boost_1_75_0.tar.gz https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz
+            tar -xzf boost_1_75_0.tar.gz
+            cd boost_1_75_0
+            ./bootstrap.sh
+            ./b2 install
+            echo "BOOST_DIR=/usr/local/include/boost" >> $GITHUB_ENV
         run: cibuildwheel --output-dir wheelhouse
 
       - name: Upload Wheel
