@@ -3,47 +3,30 @@ name: Playground
 on: workflow_dispatch
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ['3.12']
+        # macos-13 is an intel runner, macos-14 is apple silicon
+        os: [ubuntu-latest] # , windows-latest, macos-13, macos-14]
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install cibuildwheel
-        run: |
-          python -m pip install --upgrade pip
-          pip install cibuildwheel
-
-      - name: Set CIBW_BUILD_VER
-        run: echo "CIBW_BUILD=cp${{ matrix.python-version }}-manylinux_2_28" | sed 's/\.//' >> $GITHUB_ENV
-
-      - name: Build wheel using cibuildwheel
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.22.0
         env:
-          CIBW_PLATFORM: linux
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
-          CIBW_BUILD: cp312-*
           CIBW_BEFORE_BUILD: |
-            yum install -y wget tar
-            wget -nv -O boost_1_75_0.tar.gz https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz
-            tar -xzf boost_1_75_0.tar.gz
-            cd boost_1_75_0
-            ./bootstrap.sh
-            ./b2 headers
-            cp -r boost /usr/include
-        run: cibuildwheel --output-dir wheelhouse
+              yum install -y wget tar
+              wget -nv -O boost_1_75_0.tar.gz https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz
+              tar -xzf boost_1_75_0.tar.gz
+              cd boost_1_75_0
+              ./bootstrap.sh
+              ./b2 headers
+              cp -r boost /usr/include
 
-      - name: Upload Wheel
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: larch-pickle-wheel-linux-py${{ matrix.python-version }}
-          path: wheelhouse/*.whl
-          if-no-files-found: error
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          path: ./wheelhouse/*.whl
