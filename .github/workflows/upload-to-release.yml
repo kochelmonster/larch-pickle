@@ -24,17 +24,17 @@ jobs:
             });
             return workflow_runs[0].id;
 
-      - name: create Dist
+      - name: Create Dist
         run: |
-          mkdir -p /dist
+          mkdir -p dist
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           run-id: ${{ steps.get_run.outputs.result }}
           github-token: ${{ secrets.PAT_UPLOAD }}
-          path: /dist
+          path: dist
 
       - name: Show artifacts
         run: |
-          ls /dist
+          ls dist
