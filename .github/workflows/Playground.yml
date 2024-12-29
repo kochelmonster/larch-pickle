@@ -38,9 +38,9 @@ jobs:
             cd boost_1_75_0
             ./bootstrap.sh
             echo "install headers"
-            ./b2 headers --prefix=/usr/local
-            export BOOST_DIR=/usr/local/include/boost
-            ls /usr/local/include
+            ./b2 headers
+            export BOOST_DIR=/boost_1_75_0/include/boost
+            ls /boost_1_75_0
         run: cibuildwheel --output-dir wheelhouse
 
       - name: Upload Wheel
