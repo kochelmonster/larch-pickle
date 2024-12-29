@@ -35,18 +35,14 @@ jobs:
           github-token: ${{ secrets.PAT_UPLOAD }}
           path: dist
 
-      - name: Show artifacts
+      - name: Create artefacts directory
         run: |
-          cd dist
-          ls cibw-wheels-macos-13-1
+          mkdir -p artefacts
 
-      - name: Unzip artifacts
+      - name: Copy .whl files to artefacts
         run: |
-          cd dist
-          for file in *.zip; do
-            unzip -o "$file" -d dist
-          done
+          find dist -name "*.whl" -exec cp {} artefacts/ \;
 
-      - name: Show artifacts
+      - name: Show artefacts
         run: |
-          ls dist
+          ls artefacts
