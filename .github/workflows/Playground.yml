@@ -1,4 +1,4 @@
-ersname: Playground
+name: Playground
 
 on: workflow_dispatch
 
