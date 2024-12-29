@@ -13,11 +13,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential libboost-all-dev
-
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -36,6 +31,7 @@ jobs:
           CIBW_PLATFORM: linux
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_BUILD: cp312-*
+          CIBW_BEFORE_BUILD: sudo yum install -y boost boost-devel
         run: cibuildwheel --output-dir wheelhouse
 
       - name: Upload Wheel
