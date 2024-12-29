@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         # macos-13 is an intel runner, macos-14 is apple silicon
-        os: [ubuntu-latest, macos-13, macos-14, windows-latest]
+        os: [macos-14] # [ubuntu-latest, macos-13, macos-14, windows-latest]
 
     steps:
       - uses: actions/checkout@v4
@@ -17,7 +17,8 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.22.0
         env:
-          CIBW_BUILD: cp310-* cp311-* cp312-* 
+          # CIBW_BUILD: cp310-* cp311-* cp312-* 
+          CIBW_BUILD: cp312-* 
           CIBW_BEFORE_BUILD_LINUX: |
               yum install -y wget tar
               wget -nv -O boost_1_75_0.tar.gz https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz
@@ -34,13 +35,12 @@ jobs:
               b2 headers
               xcopy boost C:\boost /E /I /Y
           CIBW_BEFORE_BUILD_MACOS: |
-              brew install wget
               wget -nv -O boost_1_75_0.tar.gz https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz
               tar -xzf boost_1_75_0.tar.gz
               cd boost_1_75_0
               ./bootstrap.sh
               ./b2 headers
-              sudo cp -r boost /usr/local/include
+              sudo cp -r boost /usr/include
 
       - uses: actions/upload-artifact@v4
         with:
