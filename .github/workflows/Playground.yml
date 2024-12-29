@@ -23,11 +23,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install cibuildwheel
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget tar
-
       - name: Set CIBW_BUILD_VER
         run: echo "CIBW_BUILD=cp${{ matrix.python-version }}-manylinux_2_28" | sed 's/\.//' >> $GITHUB_ENV
 
@@ -37,6 +32,7 @@ jobs:
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_BUILD: cp312-*
           CIBW_BEFORE_BUILD: |
+            yum install -y wget tar
             wget -O boost_1_75_0.tar.gz https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz
             tar -xzf boost_1_75_0.tar.gz
             cd boost_1_75_0
