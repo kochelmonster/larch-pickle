@@ -37,12 +37,8 @@ jobs:
             tar -xzf boost_1_75_0.tar.gz
             cd boost_1_75_0
             ./bootstrap.sh
-            echo "install headers"
-            pwd
             ./b2 headers
-            export BOOST_DIR=$(pwd)
-            echo "BOOST DIR=$BOOST_DIR"
-            ls $BOOST_DIR
+            cp -r boost /usr/include
         run: cibuildwheel --output-dir wheelhouse
 
       - name: Upload Wheel
