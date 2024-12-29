@@ -24,11 +24,12 @@ jobs:
           pip install cibuildwheel
 
       - name: Set CIBW_BUILD_VER
-        run: echo "CIBW_BUILD=cp${{ matrix.python-version }}-manylinux_x86_64" | sed 's/\.//' >> $GITHUB_ENV
+        run: echo "CIBW_BUILD=cp${{ matrix.python-version }}-manylinux_2_28" | sed 's/\.//' >> $GITHUB_ENV
 
       - name: Build wheel using cibuildwheel
         env:
           CIBW_PLATFORM: linux
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
         run: cibuildwheel --output-dir wheelhouse
 
       - name: Upload Wheel
