@@ -37,7 +37,7 @@ jobs:
 
       - name: Unzip artifacts
         run: |
-          for file in dist/*.; do
+          for file in dist/*; do
             unzip -o "$file" -d dist
           done
 
