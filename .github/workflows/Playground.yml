@@ -34,8 +34,7 @@ jobs:
               cd C:\local\boost_1_75_0
               bootstrap.bat
               b2 headers
-              dir
-              dir C:\local\boost_1_75_0
+              powershell -Command "Get-ChildItem -Recurse C:\local"
           CIBW_ENVIRONMENT_WINDOWS: BOOST_DIR=C:\\local\\boost_1_75_0
           CIBW_BEFORE_BUILD_MACOS: |
               wget -nv -O boost_1_75_0.tar.gz https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz
