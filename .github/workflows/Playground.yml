@@ -36,10 +36,14 @@ jobs:
         file: '.*[.](whl|tar.gz)$'
         regex: true
         target: "dist/"
+
+    - name: create dist
+      run: |
+        ls -R
   
     - name: Publish package to PyPI
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        TWINE_PASSWORD: ${{ secrets.TESTPI_PASSWORD }}
       run: |
-        twine upload --repository testpypi dist/*
+        twine upload --verbose --repository testpypi dist/*
