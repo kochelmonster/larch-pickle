@@ -1,4 +1,4 @@
-name: Playground
+ersname: Playground
 
 on: workflow_dispatch
 
@@ -37,7 +37,7 @@ jobs:
             tar -xzf boost_1_75_0.tar.gz
             cd boost_1_75_0
             ./bootstrap.sh
-            ./b2 install
+            ./b2 headers
             export BOOST_DIR=/usr/local/include/boost
         run: cibuildwheel --output-dir wheelhouse
 
