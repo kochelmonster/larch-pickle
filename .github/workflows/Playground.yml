@@ -28,6 +28,7 @@ jobs:
               ./b2 headers
               cp -r boost /usr/include
           CIBW_BEFORE_BUILD_WINDOWS: |
+              powershell -Command "New-Item -ItemType Directory -Force -Path C:\local"
               powershell -Command "Invoke-WebRequest -Uri https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.zip -OutFile boost_1_75_0.zip"
               powershell -Command "Expand-Archive -Path boost_1_75_0.zip -DestinationPath C:\local"
               cd C:\local\boost_1_75_0
