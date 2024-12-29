@@ -39,6 +39,7 @@ jobs:
             ./bootstrap.sh
             ./b2 headers
             export BOOST_DIR=/usr/local/include/boost
+            ls /usr/local/include/boost
         run: cibuildwheel --output-dir wheelhouse
 
       - name: Upload Wheel
