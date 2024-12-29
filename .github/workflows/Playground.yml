@@ -50,10 +50,12 @@ jobs:
           path: ./wheelhouse/*.whl
 
   build-windows:
-    runs-on: windows-latest
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         python-version: ['3.10', '3.12']
+        os: [windows-latest]
 
     steps:
       - name: Checkout code
