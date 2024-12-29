@@ -38,7 +38,7 @@ jobs:
             cd boost_1_75_0
             ./bootstrap.sh
             ./b2 install
-            echo "BOOST_DIR=/usr/local/include/boost" >> $GITHUB_ENV
+            export BOOST_DIR=/usr/local/include/boost
         run: cibuildwheel --output-dir wheelhouse
 
       - name: Upload Wheel
