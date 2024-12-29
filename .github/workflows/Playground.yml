@@ -38,6 +38,7 @@ jobs:
             cd boost_1_75_0
             ./bootstrap.sh
             echo "install headers"
+            pwd
             ./b2 headers
             export BOOST_DIR=/boost_1_75_0/include/boost
             ls /boost_1_75_0
