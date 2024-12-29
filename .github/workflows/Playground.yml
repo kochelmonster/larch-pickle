@@ -40,7 +40,7 @@ jobs:
               cd boost_1_75_0
               ./bootstrap.sh
               ./b2 headers
-              sudo cp -r boost /usr/local/include/boost
+              sudo cp -r boost /usr/local/include
               ls /usr/local/include
           CIBW_ENVIRONMENT_MACOS: BOOST_DIR=/usr/local/include
 
