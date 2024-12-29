@@ -3,64 +3,43 @@ name: Playground
 on: workflow_dispatch
 
 jobs:
-  build-linux:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: ['3.12']
+  publish:
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential libboost-all-dev
+    - name: Get release
+      id: get_release
+      uses: thebritican/fetch-latest-release@v2.0.0
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install cython wheel setuptools
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install setuptools wheel twine
 
-      - name: Build Wheel
-        run: |
-          python setup.py bdist_wheel
-
-      - name: Find first wheel file
-        id: find_wheel
-        run: |
-          first_wheel=$(ls dist/*.whl | head -n 1)
-          echo "wheel=$first_wheel" >> $GITHUB_ENV
-          echo "wheel_base=$(basename $first_wheel)" >> $GITHUB_ENV
-
-      - name: Get latest release draft
-        id: get_release
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const releases = await github.rest.repos.listReleases({
-              owner: context.repo.owner,
-              repo: context.repo.repo
-            });
-            const draftRelease = releases.data.find(release => release.draft);
-            if (!draftRelease) {
-              throw new Error('No draft release found');
-            }
-            core.setOutput('upload_url', draftRelease.upload_url);
-
-      - name: Upload to release draft
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT_UPLOAD }}
-        with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ${{ env.wheel }}
-          asset_name: ${{ env.wheel_base }}
-          asset_content_type: application/zip
+    - name: create dist
+      run: |
+        mkdir dist
+  
+    - uses: dsaltares/fetch-gh-release-asset@master
+      with:
+        version: tags/${{ steps.get_release.outputs.tag_name }}
+        file: '.*[.](whl|tar.gz)$'
+        regex: true
+        target: "dist/"
+  
+    - name: Publish package to PyPI
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      run: |
+        twine upload --repository testpypi dist/*
