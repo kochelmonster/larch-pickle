@@ -29,6 +29,7 @@ jobs:
         with:
           run-id: ${{ steps.get_run.outputs.result }}
           path: /dist
+          github-token: ${{ secrets.PAT_UPLOAD }}
 
       - name: Show artifacts
         run: |
