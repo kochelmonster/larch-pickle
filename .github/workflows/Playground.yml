@@ -42,8 +42,5 @@ jobs:
         ls -R
   
     - name: Publish package to PyPI
-      env:
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.TESTPI_PASSWORD }}
       run: |
         twine upload --verbose --repository testpypi dist/*
