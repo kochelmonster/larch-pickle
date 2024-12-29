@@ -38,7 +38,7 @@ jobs:
       - name: Show artifacts
         run: |
           cd dist
-          ls
+          ls cibw-wheels-macos-13-1
 
       - name: Unzip artifacts
         run: |
