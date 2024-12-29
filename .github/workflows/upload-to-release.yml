@@ -35,9 +35,15 @@ jobs:
           github-token: ${{ secrets.PAT_UPLOAD }}
           path: dist
 
+      - name: Show artifacts
+        run: |
+          cd dist
+          ls
+
       - name: Unzip artifacts
         run: |
-          for file in dist/*; do
+          cd dist
+          for file in *.zip; do
             unzip -o "$file" -d dist
           done
 
