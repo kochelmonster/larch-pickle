@@ -30,6 +30,7 @@ jobs:
         env:
           CIBW_PLATFORM: linux
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
+          CIBW_BUILD: cp${{ matrix.python-version | replace('.', '') }}-manylinux_x86_64
         run: cibuildwheel --output-dir wheelhouse
 
       - name: Upload Wheel
