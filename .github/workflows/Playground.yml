@@ -41,7 +41,7 @@ jobs:
               ./bootstrap.sh
               ./b2 headers
               sudo cp -r boost /usr/local/include
-              export BOOST_DIR=/usr/local/boost/include
+          CIBW_ENVIRONMENT_MACOS: BOOST_DIR=/usr/local/boost/include
 
       - uses: actions/upload-artifact@v4
         with:
