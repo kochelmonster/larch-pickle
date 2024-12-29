@@ -1,4 +1,4 @@
-name: Playground
+ose name: Playground
 
 on: workflow_dispatch
 
@@ -46,4 +46,4 @@ jobs:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.TESTPI_API_TOKEN }}
       run: |
-        twine upload --repository testpypi dist/*
+        twine upload --verbose --repository testpypi dist/*
