@@ -3,137 +3,58 @@ name: Build Wheel
 on: workflow_dispatch
 
 jobs:
-  build-linux:
+  build-posix:
+    name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        python-version: ['3.10', '3.12']
+        # macos-13 is an intel runner, macos-14 is apple silicon
+        os: [ubuntu-latest, macos-13, macos-14] # , windows-latest]
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential libboost-all-dev
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install cython wheel setuptools
-
-      - name: Build Wheel
-        run: |
-          python setup.py bdist_wheel
-
-      - name: Find first wheel file
-        id: find_wheel
-        run: |
-          first_wheel=$(ls dist/*.whl | head -n 1)
-          echo "wheel=$first_wheel" >> $GITHUB_ENV
-          echo "wheel_base=$(basename $first_wheel)" >> $GITHUB_ENV
-
-      - name: Get latest release draft
-        id: get_release
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const releases = await github.rest.repos.listReleases({
-              owner: context.repo.owner,
-              repo: context.repo.repo
-            });
-            const draftRelease = releases.data.find(release => release.draft);
-            if (!draftRelease) {
-              throw new Error('No draft release found');
-            }
-            core.setOutput('upload_url', draftRelease.upload_url);
-
-      - name: Upload to release draft
-        uses: actions/upload-release-asset@v1
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.22.0
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_UPLOAD }}
+          CIBW_BUILD: cp310-* cp311-* cp312-* 
+          CIBW_BEFORE_BUILD_LINUX: |
+              yum install -y wget tar
+              wget -nv -O boost_1_75_0.tar.gz https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz
+              tar -xzf boost_1_75_0.tar.gz
+              cd boost_1_75_0
+              ./bootstrap.sh
+              ./b2 headers
+              cp -r boost /usr/include
+          CIBW_BEFORE_BUILD_WINDOWS: |
+              curl -s -L -o boost.zip https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.zip
+              mkdir -p C:\local
+              tar -xf boost.zip -C C:\local
+              dir C:\local
+          CIBW_ENVIRONMENT_WINDOWS: BOOST_DIR=C:\\local\\boost_1_75_0
+          CIBW_BEFORE_BUILD_MACOS: |
+              wget -nv -O boost_1_75_0.tar.gz https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz
+              tar -xzf boost_1_75_0.tar.gz
+              cd boost_1_75_0
+              ./bootstrap.sh
+              ./b2 headers
+              sudo mkdir -p /usr/local/include/boost
+              sudo cp -r boost/* /usr/local/include/boost
+              ls /usr/local/include/boost
+          CIBW_ENVIRONMENT_MACOS: BOOST_DIR=/usr/local/include
+
+      - uses: actions/upload-artifact@v4
         with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ${{ env.wheel }}
-          asset_name: ${{ env.wheel_base }}
-          asset_content_type: application/zip
-
-  build-macos:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macos-latest]
-        python-version: ['3.10', '3.12']
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install system dependencies
-        run: |
-          brew install boost
-          brew install gcc
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install cython wheel setuptools
-
-      - name: Build Wheel
-        run: |
-          BOOST_DIR=$(brew --prefix boost)
-          export BOOST_DIR
-          python setup.py bdist_wheel
-
-      - name: Find first wheel file
-        id: find_wheel
-        run: |
-          first_wheel=$(ls dist/*.whl | head -n 1)
-          echo "wheel=$first_wheel" >> $GITHUB_ENV
-          echo "wheel_base=$(basename $first_wheel)" >> $GITHUB_ENV
-
-      - name: Get latest release draft
-        id: get_release
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const releases = await github.rest.repos.listReleases({
-              owner: context.repo.owner,
-              repo: context.repo.repo
-            });
-            const draftRelease = releases.data.find(release => release.draft);
-            if (!draftRelease) {
-              throw new Error('No draft release found');
-            }
-            core.setOutput('upload_url', draftRelease.upload_url);
-
-      - name: Upload to release draft
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT_UPLOAD }}
-        with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ${{ env.wheel }}
-          asset_name: ${{ env.wheel_base }}
-          asset_content_type: application/zip
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          path: ./wheelhouse/*.whl
 
   build-windows:
-    runs-on: windows-latest
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        python-version: ['3.10', '3.12']
+        python-version: ['3.10', '3.11','3.12']
+        os: [windows-latest]
 
     steps:
       - name: Checkout code
@@ -162,34 +83,8 @@ jobs:
         run: |
           python setup.py bdist_wheel
 
-      - name: Find first wheel file
-        id: find_wheel
-        run: |
-          $first_wheel = Get-ChildItem -Path dist\*.whl | Select-Object -First 1
-          echo "wheel=$first_wheel" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-          echo "wheel_base=$(Split-Path -Leaf $first_wheel)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
-      - name: Get latest release draft
-        id: get_release
-        uses: actions/github-script@v6
+      - uses: actions/upload-artifact@v4
         with:
-          script: |
-            const releases = await github.rest.repos.listReleases({
-              owner: context.repo.owner,
-              repo: context.repo.repo
-            });
-            const draftRelease = releases.data.find(release => release.draft);
-            if (!draftRelease) {
-              throw new Error('No draft release found');
-            }
-            core.setOutput('upload_url', draftRelease.upload_url);
-
-      - name: Upload to release draft
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT_UPLOAD }}
-        with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ${{ env.wheel }}
-          asset_name: ${{ env.wheel_base }}
-          asset_content_type: application/zip
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          path: dist/*.whl
+          
