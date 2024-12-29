@@ -3,47 +3,33 @@ name: Playground
 on: workflow_dispatch
 
 jobs:
-  publish:
-    runs-on: ubuntu-latest
+  build-linux:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.12']
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Get release
-      id: get_release
-      uses: thebritican/fetch-latest-release@v2.0.0
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libboost-all-dev
 
-    - name: create dist
-      run: |
-        mkdir dist
-  
-    - uses: dsaltares/fetch-gh-release-asset@master
-      with:
-        version: tags/${{ steps.get_release.outputs.tag_name }}
-        file: '.*[.](whl|tar.gz)$'
-        regex: true
-        target: "dist/"
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install cython wheel setuptools
 
-    - name: create dist
-      run: |
-        ls -R
+      - name: Build Wheel
+        run: |
+          python setup.py bdist_wheel
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install setuptools wheel twine
-
-    - name: Publish package to PyPI
-      env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.TESTPI_API_TOKEN }}
-      run: |
-        twine upload --verbose --repository testpypi dist/*
