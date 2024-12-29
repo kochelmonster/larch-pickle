@@ -24,7 +24,7 @@ jobs:
           pip install cibuildwheel
 
       - name: Set CIBW_BUILD_VER
-        run: echo "CIBW_BUILD=cp${{ matrix.python-version }}-manylinux_2_28" | sed 's/\.//' >> $GITHUB_ENV
+        run: echo "CIBW_BUILD=cp${{ matrix.python-version | replace('.', '') }}-manylinux_2_28" >> $GITHUB_ENV
 
       - name: Build wheel using cibuildwheel
         env:
