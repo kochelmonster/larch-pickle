@@ -21,11 +21,6 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ github.token }}
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install setuptools wheel twine
-
     - name: create dist
       run: |
         mkdir dist
@@ -42,5 +37,6 @@ jobs:
         ls -R
   
     - name: Publish package to PyPI
-      run: |
-        twine upload --verbose --repository testpypi dist/*
+      uses: pypa/gh-action-pypi-publish@v1
+      with:
+        package: dist/*
