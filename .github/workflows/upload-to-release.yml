@@ -46,7 +46,7 @@ jobs:
       - name: Show artefacts
         run: |
           ls artefacts
-          
+
       - name: Get latest release draft
         id: get_release
         uses: actions/github-script@v6
@@ -61,9 +61,9 @@ jobs:
               throw new Error('No draft release found');
             }
             core.setOutput('upload_url', draftRelease.upload_url);
-      
+
       - name: Upload files to upload_url
         run: |
           for file in artefacts/*; do
-            curl -X POST -H "Authorization: token ${{ secrets.PAT_UPLOAD }}" -H "Content-Type: application/zip" -F "file=@$file" "${{ steps.get_release.outputs.upload_url }}?name=$(basename "$file")"
+            curl -X POST -H "Authorization: token ${{ secrets.PAT_UPLOAD }}" -H "Content-Type: multipart/form-data" -F "file=@$file" "${{ steps.get_release.outputs.upload_url }}?name=$(basename \"$file\")"
           done
