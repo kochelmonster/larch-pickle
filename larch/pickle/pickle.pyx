@@ -111,6 +111,8 @@ cdef extern from "pickle.hpp":
     #cdef debug_t debug
 
     void throw_python_error()
+    int CPyLong_AsByteArray(PyLongObject* v, uchar_t* bytes, size_t n, 
+                            int little_endian, int is_signed)
 
     ctypedef object (*tp_new_t)(PyTypeObject*, object, PyObject*)
     cdef tp_new_t GET_NEW(object)
@@ -416,7 +418,7 @@ cdef void save_long(Packer* p, object o) noexcept:
     tmp = PyBytes_FromStringAndSize(NULL, nbytes)
     data = Bytes_AS_STRING(tmp)
 
-    if _PyLong_AsByteArray(<PyLongObject*>o, <uchar_t*>data, nbytes, 1, 1) < 0:
+    if CPyLong_AsByteArray(<PyLongObject*>o, <uchar_t*>data, nbytes, 1, 1) < 0:
         throw_python_error()
 
     if (sign < 0 and nbytes > 1

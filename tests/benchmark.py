@@ -3,7 +3,7 @@ from __future__ import print_function
 #
 # Simple serialization banchmark
 #
-
+import sys
 from timeit import timeit
 from tabulate import tabulate
 try:
@@ -39,7 +39,8 @@ def mdump(x, f):
 
 
 serializers = (
-    ('Pickle-3.12.2', pdumps, pickle.loads),
+    (f'Pickle-{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}',
+     pdumps, pickle.loads),
     ('json', json.dumps, json.loads),
     # ('cjson', cjson.encode, cjson.decode),
     ('ujson', ujson.dumps, ujson.loads),
