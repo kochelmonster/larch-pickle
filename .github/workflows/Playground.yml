@@ -26,9 +26,9 @@ jobs:
       - name: Build wheel using cibuildwheel
         env:
           CIBW_PLATFORM: linux
-          CIBW_BUILD: cp${{ matrix.python-version }}-*
+          CIBW_BUILD_VER: ${{ matrix.python-version }}
         run: |
-          cibuildwheel --output-dir wheelhouse
+          cibuildwheel --output-dir wheelhouse --build cp${{ env.CIBW_BUILD_VER.replace('.', '') }}-manylinux_x86_64
 
       - name: Upload Wheel
         uses: actions/upload-artifact@v4
