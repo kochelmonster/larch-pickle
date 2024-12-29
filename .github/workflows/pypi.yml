@@ -1,4 +1,4 @@
-name: Publish Python to TestPypi
+name: Publish Python to Pypi
 on: workflow_dispatch
 jobs:  
   publish-to-pypi:
@@ -7,7 +7,7 @@ jobs:
 
     environment:
       name: pypi
-      url: https://test.pypi.org/p/larch-pickle
+      url: https://pypi.org/p/larch-pickle
 
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
@@ -30,7 +30,7 @@ jobs:
         regex: true
         target: "dist/"
 
-    - name: Publish distribution 📦 to TestPyPI
+    - name: Publish distribution 📦 to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         verbose: true
