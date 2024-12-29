@@ -40,7 +40,8 @@ jobs:
               cd boost_1_75_0
               ./bootstrap.sh
               ./b2 headers
-              sudo cp -r boost /usr/include
+              sudo cp -r boost /usr/local/include
+              export BOOST_DIR=/usr/local/boost/include
 
       - uses: actions/upload-artifact@v4
         with:
