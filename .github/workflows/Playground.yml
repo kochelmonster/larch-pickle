@@ -29,11 +29,10 @@ jobs:
               cp -r boost /usr/include
           CIBW_BEFORE_BUILD_WINDOWS: |
               powershell -Command "Invoke-WebRequest -Uri https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.zip -OutFile boost_1_75_0.zip"
-              powershell -Command "Expand-Archive -Path boost_1_75_0.zip -DestinationPath ."
-              cd boost_1_75_0
+              powershell -Command "Expand-Archive -Path boost_1_75_0.zip -DestinationPath C:\local"
+              cd C:\local\boost_1_75_0
               bootstrap.bat
               b2 headers
-              xcopy boost C:\boost /E /I /Y
           CIBW_BEFORE_BUILD_MACOS: |
               wget -nv -O boost_1_75_0.tar.gz https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz
               tar -xzf boost_1_75_0.tar.gz
