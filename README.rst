@@ -148,3 +148,8 @@ json             1.54972
 Pickle-3.13.1    1.70148
 ujson            1.72284
 =============  =========
+
+License
+-------
+
+larch.pickle is released under BSD licence.
