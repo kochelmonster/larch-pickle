@@ -49,14 +49,14 @@ struct TypeMap : public unordered_map<PyObject*, pack_t> {
 
 
 struct BaseRefHandler {
-  virtual bool save_ref(Packer* p, PyObject *o) = 0;
+  virtual bool save_ref(Packer* p, PyObject *o, bool force_obj) = 0;
   virtual uint32_t reset() = 0;
   virtual ~BaseRefHandler() { }
 };
 
 
 struct DumyRefHandler : public BaseRefHandler {
-  virtual bool save_ref(Packer* p, PyObject *o) {
+  virtual bool save_ref(Packer* p, PyObject *o, bool force_obj) {
     return false;
   }
   virtual uint32_t reset() {
@@ -82,7 +82,7 @@ struct RefHandler : public BaseRefHandler {
     Py_XDECREF(string_refs);
   }
 
-  virtual bool save_ref(Packer* p, PyObject *o);
+  virtual bool save_ref(Packer* p, PyObject *o, bool force_obj);
   virtual uint32_t reset() {
     uint32_t val = ref_counter;
     ref_counter = 0;
@@ -402,11 +402,16 @@ struct Packer {
   }
 
   bool save_ref(PyObject *o) {
-    return refhandler->save_ref(this, o);
+    return refhandler->save_ref(this, o, false);
+  }
+
+  bool save_ref(PyObject *o, bool force_obj) {
+    return refhandler->save_ref(this, o, force_obj);
   }
 
   inline void dump(PyObject *o) {
     PyTypeObject *type = Py_TYPE(o);
+
     if (type == (PyTypeObject*)string_type) {
       // A little optimation: there are many strings
       save_string_ptr(this, o);
@@ -439,14 +444,14 @@ struct Packer {
 };
 
 
-inline bool RefHandler::save_ref(Packer* p, PyObject *o) {
+inline bool RefHandler::save_ref(Packer* p, PyObject *o, bool force_obj) {
   if (o->ob_refcnt == 1) {
     ++ref_counter;
     // there will be no reference => don't save any
     return false;
   }
 
-  if (PyUnicode_Check(o) || PyString_Check(o)) {
+  if (!force_obj && (PyUnicode_Check(o) || PyString_Check(o))) {
     PyObject* c = PyDict_GetItem(string_refs, o);
     if (!c) {
       PyObject* i = PyInt_FromLong(++ref_counter);
@@ -467,7 +472,7 @@ inline bool RefHandler::save_ref(Packer* p, PyObject *o) {
       refid = ++ref_counter;
       return false;
     }
-
+      
     unsigned char buf[5] = {0xc1};
     to_buffer(buf, refid);
     p->write(buf, sizeof(buf));

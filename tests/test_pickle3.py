@@ -9,6 +9,7 @@ import platform
 import builtins
 import operator
 import collections
+from enum import StrEnum
 from http.cookies import SimpleCookie
 from test.support import TestFailed, _2G, _4G, bigmemtest, set_memlimit
 try:
@@ -1222,6 +1223,10 @@ class PicklerUnpicklerObjectTests(
     unpickler_class = pickle.Unpickler
 
 
+class ETest(StrEnum):
+    x = "abcdefg"
+
+
 class TestLarchBugs(unittest.TestCase):
     def test_bug(self):
         s = pickle.dumps(["four", "two", "four"])
@@ -1230,6 +1235,11 @@ class TestLarchBugs(unittest.TestCase):
         unpickler.loads(b'\xd4\x00\x03\x01')  # protocol 3
         r2 = unpickler.loads(s)  # switch back to 4
         self.assertEqual(r1, r2)
+
+    def test_issue4(self):
+        cmp_ = pickle.loads(pickle.dumps(ETest.x))
+        self.assertEqual(cmp_, ETest.x)
+
 
 
 if __name__ == "__main__":

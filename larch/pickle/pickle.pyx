@@ -122,14 +122,15 @@ cdef extern from "pickle.hpp":
         OLD_STYLE, INIT_ARGS, END_OBJECT_ITEMS, BYTES, UNISTR,
         OBJECT_NEW_CUSTOM, GLOBAL_OBJECT, FAST_NEW, COUNT_EXT_TYPES
 
-    # cdef show_debug(char* msg, object o, long v):
-    #     if <PyObject*>o is NULL:
-    #         print(msg, hex(v), "NULL")
-    #     else:
-    #         print(msg, hex(v), repr(o), hex(<size_t><PyObject*>o), (<PyObject*>o).ob_refcnt)
-
-    # debug = <debug_t>show_debug
-
+"""
+cdef show_debug(char* msg, object o, long v):
+    if <PyObject*>o is NULL:
+        print(msg, hex(v), "NULL")
+    else:
+        print(msg, hex(v), repr(o), type(o), hex(<size_t><PyObject*>o), (<PyObject*>o).ob_refcnt)
+    
+debug = <debug_t>show_debug
+"""
 
 cdef extern from "pack.hpp":
     ctypedef void (*pack_t)(Packer* p, object o)
@@ -156,6 +157,7 @@ cdef extern from "pack.hpp":
         Packer(object pickler, int protocol, bool with_refs)
 
         bool save_ref(object o)
+        bool save_ref(object o, bool force_obj)
         void dump(object o)
         int first_dump(object o) except -1
 
@@ -408,7 +410,7 @@ cdef void save_long(Packer* p, object o) noexcept:
         p.pack_int(v)
         return
 
-    if p.save_ref(o): return
+    if p.save_ref(o, 1): return
 
     nbytes = (nbits >> 3) + 1
     if nbytes > 0x7fffffffL:
@@ -483,7 +485,7 @@ cdef void save_object_state(Packer* p, tuple state):
 
 
 cdef inline int _save_reduced(Packer* p, object o) except -1:
-    if p.save_ref(o): return 0
+    if p.save_ref(o, 1): return 0
     state = o.__reduce_ex__(REDUCE_PROTOCOL)
     if isinstance(state, basestring):
         (<Pickler>p.pickler).pack_import2(SINGLETON, o.__module__, state)
@@ -503,7 +505,7 @@ cdef void save_reduced(Packer* p, object o) noexcept:
 
 
 cdef inline int _save_new_object(Packer* p, o) except -1:
-    if p.save_ref(o): return 0
+    if p.save_ref(o, 1): return 0
     state = o.__reduce_ex__(REDUCE_PROTOCOL)
     if isinstance(state, basestring):
         (<Pickler>p.pickler).pack_import2(SINGLETON, o.__module__, state)
@@ -579,7 +581,7 @@ cdef inline int _save_object(Packer* p, object o) except -1:
         PyObject *reduce_func
         pack_t next_save_func = NULL
 
-    if p.save_ref(o) > 0:
+    if p.save_ref(o, 1) > 0:
         return 0
 
     reduce_func = PyDict_GetItem((<Pickler>p.pickler).dispatch_table, type(o))
@@ -922,7 +924,7 @@ cdef object load_ref(Unpacker* p, uint8_t code, size_t size):
     return <object>obj
 
 
-cdef object load_global(Unpacker* p, uint8_t code, size_t size):
+cdef object load_global(Unpacker* p, uint8_t hex(code), size_t size):
     return (<Unpickler>p.unpickler).unpack_import(size)
 
 

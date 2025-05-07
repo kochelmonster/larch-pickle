@@ -7,4 +7,4 @@ __all__ = ("Pickler", "Unpickler", "dumps", "dump", "load", "loads",
            "secure_unpickle", "PickleError", "PicklingError",
            "UnpicklingError", "SecurityError", "secure_modules")
 
-__version__ = "1.4.5"
+__version__ = "1.4.6"
