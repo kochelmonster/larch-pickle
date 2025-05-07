@@ -1,15 +1,15 @@
-name: Playground
+name: Build Wheel
 
 on: workflow_dispatch
 
 jobs:
-  build_wheels:
+  build-posix:
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         # macos-13 is an intel runner, macos-14 is apple silicon
-        os: [ubuntu-latest, macos-13, macos-14] # , windows-latest]
+        os: [ubuntu-latest] 
 
     steps:
       - uses: actions/checkout@v4
@@ -17,7 +17,7 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.22.0
         env:
-          CIBW_BUILD: cp310-* cp311-* cp312-* 
+          CIBW_BUILD: cp310-* cp311-* cp312-* cp313-*
           CIBW_BEFORE_BUILD_LINUX: |
               yum install -y wget tar
               wget -nv -O boost_1_75_0.tar.gz https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.tar.gz
@@ -47,44 +47,3 @@ jobs:
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
-
-  build-windows:
-    name: Build wheels on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        python-version: ['3.10', '3.11','3.12']
-        os: [windows-latest]
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install system dependencies
-        run: |
-          choco install visualstudio2022buildtools -y
-          curl -L -o boost.zip https://boostorg.jfrog.io/artifactory/main/release/1.75.0/source/boost_1_75_0.zip
-          mkdir -p C:\local
-          tar -xf boost.zip -C C:\local
-          setx BOOST_ROOT C:\local\boost_1_75_0
-          setx PATH "%PATH%;C:\local\boost_1_75_0"
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install cython wheel setuptools
-
-      - name: Build Wheel
-        run: |
-          python setup.py bdist_wheel
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
-          path: dist/*.whl
-          
