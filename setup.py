@@ -146,7 +146,7 @@ setup(
     description="A faster python pickle replacement",
     keywords="library",
     url="https://github.com/kochelmonster/larch-pickle",
-    long_description=open(os.path.join(module_dir, "README.rst"), "r").read(),
+    long_description=open(os.path.join(module_dir, "README.md"), "r").read(),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
