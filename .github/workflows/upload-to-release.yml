@@ -61,6 +61,30 @@ jobs:
               throw new Error('No draft release found');
             }
             core.setOutput('upload_url', draftRelease.upload_url);
+            core.setOutput('release_id', draftRelease.id);
+
+      - name: Delete existing assets
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.PAT_UPLOAD }}
+          script: |
+            const releaseId = '${{ steps.get_release.outputs.release_id }}';
+            const { data: assets } = await github.rest.repos.listReleaseAssets({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: releaseId
+            });
+            
+            for (const asset of assets) {
+              if (asset.name.endsWith('.whl')) {
+                console.log(`Deleting existing asset: ${asset.name}`);
+                await github.rest.repos.deleteReleaseAsset({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  asset_id: asset.id
+                });
+              }
+            }
 
       - name: Upload artifacts and release assets
         uses: nanoufo/action-upload-artifacts-and-release-assets@v2
