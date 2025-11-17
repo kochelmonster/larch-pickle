@@ -44,6 +44,13 @@ enum EXT_TYPES {
 #define PyUnicode_GET_LENGTH PyUnicode_GET_SIZE
 #endif
 
+/* Python 2/3 compatibility macros */
+#if PY_MAJOR_VERSION >= 3
+  #define PyString_Check PyUnicode_Check
+  #define PyInt_FromLong PyLong_FromLong
+  #define PyInt_AS_LONG PyLong_AsLong
+#endif
+
 typedef int (*write_t)(PyObject* p, void* data, size_t size);
 typedef int (*read_t)(PyObject* p, void* data, size_t size);
 
