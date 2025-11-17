@@ -130,7 +130,7 @@ module_dir = os.path.dirname(os.path.abspath(__file__))
 
 setup(
     name="larch-pickle",
-    version="1.4.6",
+    version="1.4.7",
     packages=find_namespace_packages(where=".", include=["larch.pickle"]),
     exclude=["pickle.pyx"], # don't generate auto extension
 

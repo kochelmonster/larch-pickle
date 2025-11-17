@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "larch-pickle"
-version = "1.4.6"
+version = "1.4.7"
 license = {text = "BSD"}
 authors = [{name = "Michael Reithinger", email = "mreithinger@web.de"}]
 keywords = ["library"]
