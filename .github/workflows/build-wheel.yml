@@ -15,10 +15,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.23.0
+        uses: pypa/cibuildwheel@v3.3.0
         env:
           CIBW_BUILD: cp310-* cp311-* cp312-* cp313-* cp314-*
-          CIBW_PRERELEASE_PYTHONS: true
           CIBW_BEFORE_BUILD_LINUX: |
               yum install -y wget tar
               wget -nv -O boost_1_75_0.tar.gz https://archives.boost.io/release/1.75.0/source/boost_1_75_0.tar.gz
